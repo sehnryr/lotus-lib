@@ -1,8 +1,8 @@
-use std::rc::Rc;
+use std::{rc::Rc, cell::RefCell};
 
 pub trait Node {
     fn name(&self) -> &String;
-    fn parent(&self) -> Option<Rc<dyn Node>>;
-    fn toc_offset(&self) -> u64;
+    fn parent(&self) -> Option<Rc<RefCell<dyn Node>>>;
+    fn toc_offset(&self) -> i64;
     fn path(&self) -> String;
 }
