@@ -1,6 +1,10 @@
 use super::cache_pair::CachePair;
 use crate::toc::{dir_node::DirNode, directory_tree::DirectoryTree, file_node::FileNode};
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::RefCell,
+    io::{Read, Seek},
+    rc::Rc,
+};
 
 pub struct CachePairReader {
     is_post_ensmallening: bool,
@@ -58,5 +62,17 @@ impl CachePairReader {
 
     pub fn print_tree(&self) {
         self.directory_tree.borrow().print_tree(None);
+    }
+
+    pub fn get_data(&self, entry: Rc<RefCell<FileNode>>) -> Vec<u8> {
+        let file_node = entry.borrow();
+        let mut cache_reader = std::fs::File::open(self.cache_path.clone()).unwrap();
+        cache_reader
+            .seek(std::io::SeekFrom::Start(file_node.cache_offset() as u64))
+            .unwrap();
+
+        let mut data = vec![0; file_node.comp_len() as usize];
+        cache_reader.read_exact(&mut data).unwrap();
+        data
     }
 }
