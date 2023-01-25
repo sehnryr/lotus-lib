@@ -105,6 +105,13 @@ impl DirectoryTree {
         self.has_read = true;
     }
 
+    pub fn unread_toc(&mut self) {
+        self.dirs.clear();
+        self.files.clear();
+        self.root_node = None;
+        self.has_read = false;
+    }
+
     pub fn print_tree(&self, mut root_node: Option<Rc<RefCell<DirNode>>>) {
         if root_node.is_none() {
             root_node = self.root_node.clone();
