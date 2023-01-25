@@ -112,6 +112,49 @@ impl DirectoryTree {
         self.has_read = false;
     }
 
+    pub fn get_file_node(&self, path: &str) -> Option<Rc<RefCell<FileNode>>> {
+        let mut path = path.split('/').collect::<Vec<&str>>();
+        let file_name = path.pop().unwrap().to_string();
+
+        let dir_node = self.get_dir_node(path.join("/").as_str());
+        if dir_node.is_none() {
+            return None;
+        }
+
+        let dir_node = dir_node.unwrap();
+        let binding = dir_node.borrow();
+        let child_files = binding.child_files();
+        let file_entry = child_files.get(&file_name);
+
+        if file_entry.is_none() {
+            return None;
+        }
+
+        return Some(Rc::clone(file_entry.unwrap()));
+    }
+
+    pub fn get_dir_node(&self, path: &str) -> Option<Rc<RefCell<DirNode>>> {
+        let path = path.split('/').collect::<Vec<&str>>();
+        let mut current_dir = self.root_node.clone();
+
+        for dir_name in path.clone() {
+            if current_dir.clone().is_none() {
+                return None;
+            }
+
+            let _current_dir = current_dir.clone().unwrap();
+            let _current_dir = _current_dir.borrow();
+            let child_dir = _current_dir.child_dirs().get(dir_name);
+
+            if child_dir.is_none() {
+                return None;
+            }
+
+            current_dir = Some(Rc::clone(child_dir.unwrap()));
+        }
+        return current_dir;
+    }
+
     pub fn print_tree(&self, mut root_node: Option<Rc<RefCell<DirNode>>>) {
         if root_node.is_none() {
             root_node = self.root_node.clone();
