@@ -7,7 +7,7 @@ use std::{
 };
 
 pub struct DirectoryTree {
-    toc_path: String,
+    toc_path: std::path::PathBuf,
     dirs: Vec<Rc<RefCell<DirNode>>>,
     files: Vec<Rc<RefCell<FileNode>>>,
     root_node: Option<Rc<RefCell<DirNode>>>,
@@ -15,9 +15,9 @@ pub struct DirectoryTree {
 }
 
 impl DirectoryTree {
-    pub fn new(toc_path: Option<String>) -> Self {
+    pub fn new(toc_path: std::path::PathBuf) -> Self {
         Self {
-            toc_path: toc_path.unwrap_or(String::new()),
+            toc_path: toc_path,
             dirs: Vec::new(),
             files: Vec::new(),
             root_node: None,
@@ -25,7 +25,7 @@ impl DirectoryTree {
         }
     }
 
-    pub fn read_toc_file(&mut self) {
+    pub fn read_toc(&mut self) {
         if self.has_read {
             return;
         }
