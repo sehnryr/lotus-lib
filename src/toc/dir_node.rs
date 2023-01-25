@@ -1,5 +1,5 @@
 use super::{file_node::FileNode, node::Node};
-use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 pub struct DirNode {
     name: String,
@@ -101,7 +101,8 @@ impl DirNode {
     }
 
     pub fn add_child_dir(&mut self, dir: Rc<RefCell<DirNode>>) {
-        self.child_dirs.insert(dir.clone().as_ref().borrow().name().to_string(), dir);
+        self.child_dirs
+            .insert(dir.clone().as_ref().borrow().name().to_string(), dir);
     }
 
     pub fn add_child_file(&mut self, file: Rc<RefCell<FileNode>>) {

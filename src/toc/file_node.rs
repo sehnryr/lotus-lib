@@ -1,5 +1,5 @@
 use super::{dir_node::DirNode, node::Node};
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 
 pub struct FileNode {
     name: String,
