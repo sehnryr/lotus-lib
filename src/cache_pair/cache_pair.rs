@@ -10,6 +10,6 @@ pub trait CachePair {
     fn is_post_ensmallening(&self) -> bool;
     fn toc_path(&self) -> String;
     fn cache_path(&self) -> String;
-    fn read_toc(&mut self);
-    fn unread_toc(&mut self);
+    fn read_toc(&self);
+    fn unread_toc(&self);
 }
