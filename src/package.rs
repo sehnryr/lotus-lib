@@ -15,7 +15,6 @@ pub struct Package<T: CachePair> {
 
 impl<T: CachePair> Package<T> {
     pub fn new(
-        &self,
         directory: std::path::PathBuf,
         name: String,
         is_post_ensmallening: bool,
