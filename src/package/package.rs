@@ -1,4 +1,4 @@
-use super::cache_pair::CachePair;
+use crate::cache_pair::cache_pair::CachePair;
 
 pub enum PackageTrioType {
     H,
@@ -14,11 +14,7 @@ pub struct Package<T: CachePair> {
 }
 
 impl<T: CachePair> Package<T> {
-    pub fn new(
-        directory: std::path::PathBuf,
-        name: String,
-        is_post_ensmallening: bool,
-    ) -> Self {
+    pub fn new(directory: std::path::PathBuf, name: String, is_post_ensmallening: bool) -> Self {
         let mut package = Self {
             directory,
             name,
@@ -79,5 +75,13 @@ impl<T: CachePair> Package<T> {
 
     pub fn is_post_ensmallening(&self) -> bool {
         self.is_post_ensmallening
+    }
+
+    pub fn get(&self, package_type: &PackageTrioType) -> Option<&T> {
+        match package_type {
+            PackageTrioType::H => self.packages.0.as_ref(),
+            PackageTrioType::F => self.packages.1.as_ref(),
+            PackageTrioType::B => self.packages.2.as_ref(),
+        }
     }
 }
