@@ -1,4 +1,4 @@
-use crate::cache_pair::cache_pair::CachePair;
+use crate::cache_pair::CachePair;
 
 pub enum PackageTrioType {
     H,

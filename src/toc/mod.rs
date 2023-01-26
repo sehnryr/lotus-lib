@@ -1,5 +1,11 @@
-pub mod dir_node;
-pub mod directory_tree;
-pub mod file_node;
-pub mod node;
-pub mod raw_toc_entry;
+mod dir_node;
+mod directory_tree;
+mod file_node;
+mod node;
+mod raw_toc_entry;
+
+pub use dir_node::DirNode;
+pub use directory_tree::DirectoryTree;
+pub use file_node::FileNode;
+pub use node::Node;
+pub use raw_toc_entry::RawTocEntry;

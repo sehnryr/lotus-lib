@@ -1,5 +1,5 @@
 use super::cache_pair::CachePair;
-use crate::toc::{dir_node::DirNode, directory_tree::DirectoryTree, file_node::FileNode};
+use crate::toc::{DirNode, DirectoryTree, FileNode};
 use std::{
     cell::RefCell,
     io::{Read, Seek},

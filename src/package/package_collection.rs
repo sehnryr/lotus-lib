@@ -1,5 +1,5 @@
 use super::package::Package;
-use crate::cache_pair::cache_pair::CachePair;
+use crate::cache_pair::CachePair;
 use std::collections::HashMap;
 
 pub struct PackageCollection<T: CachePair> {
