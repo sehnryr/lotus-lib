@@ -1,5 +1,8 @@
 use super::cache_pair::CachePair;
-use crate::toc::{DirNode, DirectoryTree, FileNode};
+use crate::{
+    toc::{DirNode, DirectoryTree, FileNode},
+    utils::{decompress_post_ensmallening, decompress_pre_ensmallening},
+};
 use std::{
     cell::RefCell,
     io::{Read, Seek},
@@ -74,5 +77,20 @@ impl CachePairReader {
         let mut data = vec![0; file_node.comp_len() as usize];
         cache_reader.read_exact(&mut data).unwrap();
         data
+    }
+
+    pub fn decompress_data(&self, entry: Rc<RefCell<FileNode>>) -> Vec<u8> {
+        let file_node = entry.borrow();
+        if file_node.comp_len() == file_node.len() {
+            return self.get_data(entry.clone());
+        }
+
+        let mut cache_reader = std::fs::File::open(self.cache_path.clone()).unwrap();
+
+        if self.is_post_ensmallening {
+            return decompress_post_ensmallening(entry.clone(), &mut cache_reader);
+        } else {
+            return decompress_pre_ensmallening(entry.clone(), &mut cache_reader);
+        }
     }
 }
