@@ -1,5 +1,5 @@
-pub mod package;
-pub mod package_collection;
+mod package;
+mod package_collection;
 
 pub use package::Package;
 pub use package::PackageTrioType;
