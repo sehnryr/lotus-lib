@@ -157,6 +157,14 @@ impl DirectoryTree {
         return current_dir;
     }
 
+    pub fn files(&self) -> &Vec<Rc<RefCell<FileNode>>> {
+        &self.files
+    }
+
+    pub fn dirs(&self) -> &Vec<Rc<RefCell<DirNode>>> {
+        &self.dirs
+    }
+
     pub fn print_tree(&self, mut root_node: Option<Rc<RefCell<DirNode>>>) {
         if root_node.is_none() {
             root_node = self.root_node.clone();

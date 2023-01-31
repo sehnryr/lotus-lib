@@ -63,6 +63,14 @@ impl CachePairReader {
         self.directory_tree.borrow().get_file_node(path)
     }
 
+    pub fn files(&self) -> Vec<Rc<RefCell<FileNode>>> {
+        self.directory_tree.borrow().files().to_vec()
+    }
+
+    pub fn dirs(&self) -> Vec<Rc<RefCell<DirNode>>> {
+        self.directory_tree.borrow().dirs().to_vec()
+    }
+
     pub fn print_tree(&self) {
         self.directory_tree.borrow().print_tree(None);
     }
