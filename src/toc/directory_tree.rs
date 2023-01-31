@@ -134,12 +134,21 @@ impl DirectoryTree {
     }
 
     pub fn get_dir_node(&self, path: &str) -> Option<Rc<RefCell<DirNode>>> {
-        let mut path = path.split('/').collect::<Vec<&str>>();
-        path.remove(0);
+        if !path.starts_with("/") {
+            return None;
+        }
+
+        let mut path = path
+            .trim_start_matches("/")
+            .split("/")
+            .collect::<Vec<&str>>();
+        if path[0] == "" {
+            path = Vec::new();
+        }
 
         let mut current_dir = self.root_node.clone();
 
-        for dir_name in path.clone() {
+        for dir_name in path {
             if current_dir.clone().is_none() {
                 return None;
             }
