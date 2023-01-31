@@ -1,11 +1,11 @@
 use super::{file_node::FileNode, node::Node};
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
 
 pub struct DirNode {
     name: String,
     parent_node: Option<Rc<RefCell<DirNode>>>,
-    child_dirs: HashMap<String, Rc<RefCell<DirNode>>>,
-    child_files: HashMap<String, Rc<RefCell<FileNode>>>,
+    child_dirs: BTreeMap<String, Rc<RefCell<DirNode>>>,
+    child_files: BTreeMap<String, Rc<RefCell<FileNode>>>,
     toc_offset: i64,
 }
 
@@ -47,8 +47,8 @@ impl DirNode {
         Self {
             name: name.unwrap_or(String::new()),
             parent_node,
-            child_dirs: HashMap::new(),
-            child_files: HashMap::new(),
+            child_dirs: BTreeMap::new(),
+            child_files: BTreeMap::new(),
             toc_offset: toc_offset.unwrap_or(0),
         }
     }
@@ -92,11 +92,11 @@ impl DirNode {
         }
     }
 
-    pub fn child_dirs(&self) -> &HashMap<String, Rc<RefCell<DirNode>>> {
+    pub fn child_dirs(&self) -> &BTreeMap<String, Rc<RefCell<DirNode>>> {
         &self.child_dirs
     }
 
-    pub fn child_files(&self) -> &HashMap<String, Rc<RefCell<FileNode>>> {
+    pub fn child_files(&self) -> &BTreeMap<String, Rc<RefCell<FileNode>>> {
         &self.child_files
     }
 
