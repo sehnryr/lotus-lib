@@ -1,11 +1,12 @@
 use super::{file_node::FileNode, node::Node};
-use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
+use indexmap::IndexMap;
 
 pub struct DirNode {
     name: String,
     parent_node: Option<Rc<RefCell<DirNode>>>,
-    child_dirs: BTreeMap<String, Rc<RefCell<DirNode>>>,
-    child_files: BTreeMap<String, Rc<RefCell<FileNode>>>,
+    child_dirs: IndexMap<String, Rc<RefCell<DirNode>>>,
+    child_files: IndexMap<String, Rc<RefCell<FileNode>>>,
     toc_offset: i64,
 }
 
@@ -47,8 +48,8 @@ impl DirNode {
         Self {
             name: name.unwrap_or(String::new()),
             parent_node,
-            child_dirs: BTreeMap::new(),
-            child_files: BTreeMap::new(),
+            child_dirs: IndexMap::new(),
+            child_files: IndexMap::new(),
             toc_offset: toc_offset.unwrap_or(0),
         }
     }
@@ -92,11 +93,11 @@ impl DirNode {
         }
     }
 
-    pub fn child_dirs(&self) -> &BTreeMap<String, Rc<RefCell<DirNode>>> {
+    pub fn child_dirs(&self) -> &IndexMap<String, Rc<RefCell<DirNode>>> {
         &self.child_dirs
     }
 
-    pub fn child_files(&self) -> &BTreeMap<String, Rc<RefCell<FileNode>>> {
+    pub fn child_files(&self) -> &IndexMap<String, Rc<RefCell<FileNode>>> {
         &self.child_files
     }
 
