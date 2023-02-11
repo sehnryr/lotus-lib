@@ -1,3 +1,4 @@
+#[repr(C)]
 pub struct RawTocEntry {
     pub cache_offset: i64,
     pub timestamp: i64,
