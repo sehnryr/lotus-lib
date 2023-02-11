@@ -45,14 +45,14 @@ pub fn decompress_post_ensmallening(
             decompress_oodle(
                 &compressed_buffer,
                 compressed_len,
-                &mut decompressed_data,
+                &mut decompressed_data[decompressed_pos as usize..],
                 decompressed_len,
             );
         } else {
             decompress_lz(
                 &compressed_buffer,
                 compressed_len,
-                &mut decompressed_data,
+                &mut decompressed_data[decompressed_pos as usize..],
                 decompressed_len,
             );
         }
