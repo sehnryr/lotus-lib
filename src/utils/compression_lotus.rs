@@ -1,5 +1,6 @@
 use super::compression::{decompress_lz, decompress_oodle};
 use crate::toc::FileNode;
+use log::error;
 use std::{
     cell::RefCell,
     cmp::min_by,
@@ -12,51 +13,76 @@ pub fn decompress_post_ensmallening(
     entry: Rc<RefCell<FileNode>>,
     cache_reader: &mut File,
 ) -> Vec<u8> {
-    let mut decompressed_data = vec![0u8; entry.borrow().len() as usize];
-    let mut compressed_buffer = vec![0u8; 0x40000];
-    let mut decompressed_pos = 0;
     cache_reader
         .seek(std::io::SeekFrom::Start(
             entry.borrow().cache_offset() as u64
         ))
         .unwrap();
 
-    while decompressed_pos < entry.borrow().len() {
-        let (mut compressed_len, mut decompressed_len) = get_block_lengths(cache_reader);
-        if compressed_len == 0 && decompressed_len == 0 {
-            compressed_len = entry.borrow().comp_len() as usize;
-            decompressed_len = entry.borrow().len() as usize;
+    _decompress_post_ensmallening(
+        entry.borrow().comp_len() as usize,
+        entry.borrow().len() as usize,
+        cache_reader,
+    )
+}
+
+pub fn _decompress_post_ensmallening(
+    compressed_len: usize,
+    decompressed_len: usize,
+    cache_reader: &mut File,
+) -> Vec<u8> {
+    let mut decompressed_data = vec![0u8; decompressed_len];
+    let mut compressed_buffer = vec![0u8; 0x40000];
+    let mut decompressed_pos = 0;
+
+    while decompressed_pos < decompressed_len {
+        let (mut block_compressed_len, mut block_decompressed_len) =
+            get_block_lengths(cache_reader);
+        if block_compressed_len == 0 && block_decompressed_len == 0 {
+            block_compressed_len = compressed_len as usize;
+            block_decompressed_len = decompressed_len as usize;
         }
 
-        if decompressed_pos + decompressed_len as i32 > entry.borrow().len() {
+        if decompressed_pos + block_decompressed_len > decompressed_len {
+            error!(
+                "Decompressed past the file length, decompressed_pos: {}, decompressed_len: {}, file_len: {}",
+                decompressed_pos,
+                block_decompressed_len,
+                decompressed_len
+            );
             panic!("Decompressed past the file length");
         }
 
-        if compressed_len > min_by(get_file_length(cache_reader), 0x40000, |a, b| a.cmp(b)) {
+        if block_compressed_len > min_by(get_file_length(cache_reader), 0x40000, |a, b| a.cmp(b)) {
+            error!(
+                "Tried to read beyond limits, probably not a compressed file, compressed_len: {}, file_len: {}",
+                block_compressed_len,
+                get_file_length(cache_reader)
+            );
             panic!("Tried to read beyond limits, probably not a compressed file");
         }
 
         let is_oodle = is_oodle_block(cache_reader);
         cache_reader
-            .read_exact(&mut compressed_buffer[..compressed_len])
+            .read_exact(&mut compressed_buffer[..block_compressed_len])
             .unwrap();
 
         if is_oodle {
             decompress_oodle(
                 &compressed_buffer,
-                compressed_len,
+                block_compressed_len,
                 &mut decompressed_data[decompressed_pos as usize..],
-                decompressed_len,
+                block_decompressed_len,
             );
         } else {
             decompress_lz(
                 &compressed_buffer,
-                compressed_len,
+                block_compressed_len,
                 &mut decompressed_data[decompressed_pos as usize..],
-                decompressed_len,
+                block_decompressed_len,
             );
         }
-        decompressed_pos += decompressed_len as i32;
+        decompressed_pos += block_decompressed_len;
     }
 
     decompressed_data
@@ -66,17 +92,27 @@ pub fn decompress_pre_ensmallening(
     entry: Rc<RefCell<FileNode>>,
     cache_reader: &mut File,
 ) -> Vec<u8> {
-    let compressed_len = entry.borrow().comp_len() as usize;
-    let decompressed_len = entry.borrow().len() as usize;
-
-    let mut compressed_data = vec![0u8; compressed_len];
-    let mut decompressed_data = vec![0u8; decompressed_len];
-
     cache_reader
         .seek(std::io::SeekFrom::Start(
             entry.borrow().cache_offset() as u64
         ))
         .unwrap();
+
+    _decompress_pre_ensmallening(
+        entry.borrow().comp_len() as usize,
+        entry.borrow().len() as usize,
+        cache_reader,
+    )
+}
+
+pub fn _decompress_pre_ensmallening(
+    compressed_len: usize,
+    decompressed_len: usize,
+    cache_reader: &mut File,
+) -> Vec<u8> {
+    let mut compressed_data = vec![0u8; compressed_len];
+    let mut decompressed_data = vec![0u8; decompressed_len];
+
     cache_reader.read_exact(&mut compressed_data).unwrap();
 
     decompress_lz(
