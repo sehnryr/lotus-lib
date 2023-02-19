@@ -1,8 +1,12 @@
 use super::{dir_node::DirNode, node::Node};
+use derivative::Derivative;
 use std::{cell::RefCell, rc::Rc};
 
+#[derive(Derivative)]
+#[derivative(Debug)]
 pub struct FileNode {
     name: String,
+    #[derivative(Debug="ignore")]
     parent_node: Option<Rc<RefCell<DirNode>>>,
     cache_offset: i64,
     timestamp: i64,

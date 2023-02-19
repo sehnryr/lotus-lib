@@ -1,9 +1,13 @@
 use super::{file_node::FileNode, node::Node};
-use std::{cell::RefCell, rc::Rc};
+use derivative::Derivative;
 use indexmap::IndexMap;
+use std::{cell::RefCell, rc::Rc};
 
+#[derive(Derivative)]
+#[derivative(Debug)]
 pub struct DirNode {
     name: String,
+    #[derivative(Debug="ignore")]
     parent_node: Option<Rc<RefCell<DirNode>>>,
     child_dirs: IndexMap<String, Rc<RefCell<DirNode>>>,
     child_files: IndexMap<String, Rc<RefCell<FileNode>>>,
