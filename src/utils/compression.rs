@@ -1,5 +1,5 @@
 use lz4_flex::decompress_size_prepended;
-use ooz_sys::Kraken_Decompress;
+use oozle::decompress;
 
 pub fn decompress_oodle(
     compressed_data: &[u8],
@@ -8,12 +8,11 @@ pub fn decompress_oodle(
     decompressed_len: usize,
 ) {
     unsafe {
-        Kraken_Decompress(
-            compressed_data.as_ptr(),
-            compressed_len,
-            decompressed_data.as_mut_ptr(),
-            decompressed_len,
-        );
+        decompress(
+            &compressed_data[..compressed_len],
+            &mut decompressed_data[..decompressed_len],
+        )
+        .unwrap();
     }
 }
 
