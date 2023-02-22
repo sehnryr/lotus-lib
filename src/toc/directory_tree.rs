@@ -1,8 +1,12 @@
-use super::{dir_node::DirNode, file_node::FileNode, node::Node, raw_toc_entry::RawTocEntry};
+use super::{
+    dir_node::DirNode,
+    file_node::FileNode,
+    node::Node,
+    raw_toc_entry::{RawTocEntry, TOC_ENTRY_SIZE},
+};
 use std::{
     cell::RefCell,
     io::{Read, Seek},
-    mem,
     rc::Rc,
 };
 
@@ -30,10 +34,8 @@ impl DirectoryTree {
             return;
         }
 
-        const TOC_ENTRY_LEN: usize = mem::size_of::<RawTocEntry>();
-
         let mut toc_reader = std::fs::File::open(&self.toc_path).unwrap();
-        let entry_count = (toc_reader.metadata().unwrap().len() as usize - 8) / TOC_ENTRY_LEN;
+        let entry_count = (toc_reader.metadata().unwrap().len() as usize - 8) / TOC_ENTRY_SIZE;
         toc_reader.seek(std::io::SeekFrom::Start(8)).unwrap();
 
         self.files.reserve(entry_count);
@@ -46,14 +48,18 @@ impl DirectoryTree {
             .insert(0, Rc::new(RefCell::new(DirNode::new(None, None, None))));
 
         for i in 0..entry_count {
-            let mut buffer = [0 as u8; TOC_ENTRY_LEN];
+            let mut buffer = [0 as u8; TOC_ENTRY_SIZE];
             toc_reader.read_exact(&mut buffer).unwrap();
-            let entry = unsafe { mem::transmute::<[u8; TOC_ENTRY_LEN], RawTocEntry>(buffer) };
+            let entry = RawTocEntry::from(&buffer);
 
-            let entry_name = std::str::from_utf8(&entry.name)
-                .unwrap()
-                .trim_end_matches('\0')
-                .to_string();
+            let entry_name_buffer = entry
+                .name
+                .iter()
+                .filter(|x| !x.is_ascii_control())
+                .cloned()
+                .collect::<Vec<u8>>();
+            let entry_name = String::from_utf8(entry_name_buffer).unwrap();
+
             let parent_dir = self.dirs.get(entry.parent_dir_index as usize);
             let parent_dir = match parent_dir.is_some() {
                 true => Some(Rc::clone(parent_dir.unwrap())),
