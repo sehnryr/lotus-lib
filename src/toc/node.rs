@@ -1,8 +1,8 @@
-use std::{cell::RefCell, rc::Rc};
+use super::DirectoryNode;
+use std::{cell::RefCell, path::PathBuf, rc::Weak};
 
 pub trait Node {
-    fn name(&self) -> &String;
-    fn parent(&self) -> Option<Rc<RefCell<dyn Node>>>;
-    fn toc_offset(&self) -> i64;
-    fn path(&self) -> String;
+    fn name(&self) -> String;
+    fn path(&self) -> PathBuf;
+    fn parent_node(&self) -> Weak<RefCell<DirectoryNode>>;
 }

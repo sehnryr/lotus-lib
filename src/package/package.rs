@@ -32,11 +32,7 @@ impl<T: CachePair> Package<T> {
                 continue;
             }
 
-            let package_pair = T::new(
-                Some(toc_path.to_str().unwrap().to_string()),
-                Some(cache_path.to_str().unwrap().to_string()),
-                self.is_post_ensmallening,
-            );
+            let package_pair = T::new(toc_path, cache_path, self.is_post_ensmallening);
 
             match package_type {
                 PackageTrioType::H => self.packages.0 = Some(package_pair),

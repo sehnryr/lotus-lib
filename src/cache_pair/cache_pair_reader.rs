@@ -1,11 +1,10 @@
 use super::cache_pair::CachePair;
-use crate::{
-    toc::{DirNode, DirectoryTree, FileNode},
-    utils::{decompress_post_ensmallening, decompress_pre_ensmallening},
-};
+use crate::toc::{DirectoryNode, DirectoryTree, FileNode};
+use crate::utils::{decompress_post_ensmallening, decompress_pre_ensmallening};
 use std::{
     cell::RefCell,
-    io::{Read, Seek},
+    io::{self, Read, Seek},
+    path::PathBuf,
     rc::Rc,
 };
 
@@ -17,13 +16,7 @@ pub struct CachePairReader {
 }
 
 impl CachePair for CachePairReader {
-    fn new(
-        toc_path: Option<String>,
-        cache_path: Option<String>,
-        is_post_ensmallening: bool,
-    ) -> Self {
-        let toc_path = std::path::PathBuf::from(toc_path.unwrap());
-        let cache_path = std::path::PathBuf::from(cache_path.unwrap());
+    fn new(toc_path: PathBuf, cache_path: PathBuf, is_post_ensmallening: bool) -> Self {
         let directory_tree = Rc::new(RefCell::new(DirectoryTree::new(toc_path.clone())));
         Self {
             is_post_ensmallening,
@@ -37,16 +30,16 @@ impl CachePair for CachePairReader {
         self.is_post_ensmallening
     }
 
-    fn toc_path(&self) -> String {
-        self.toc_path.to_str().unwrap().to_string()
+    fn toc_path(&self) -> PathBuf {
+        self.toc_path.clone()
     }
 
-    fn cache_path(&self) -> String {
-        self.cache_path.to_str().unwrap().to_string()
+    fn cache_path(&self) -> PathBuf {
+        self.cache_path.clone()
     }
 
-    fn read_toc(&self) {
-        self.directory_tree.borrow_mut().read_toc();
+    fn read_toc(&self) -> Result<(), io::Error> {
+        self.directory_tree.borrow_mut().read_toc()
     }
 
     fn unread_toc(&self) {
@@ -55,24 +48,23 @@ impl CachePair for CachePairReader {
 }
 
 impl CachePairReader {
-    pub fn get_dir_node(&self, path: &str) -> Option<Rc<RefCell<DirNode>>> {
-        self.directory_tree.borrow().get_dir_node(path)
+    pub fn get_directory_node<T: Into<PathBuf>>(
+        &self,
+        path: T,
+    ) -> Option<Rc<RefCell<DirectoryNode>>> {
+        self.directory_tree.borrow().get_directory_node(path.into())
     }
 
-    pub fn get_file_node(&self, path: &str) -> Option<Rc<RefCell<FileNode>>> {
-        self.directory_tree.borrow().get_file_node(path)
+    pub fn get_file_node<T: Into<PathBuf>>(&self, path: T) -> Option<Rc<RefCell<FileNode>>> {
+        self.directory_tree.borrow().get_file_node(path.into())
+    }
+
+    pub fn directories(&self) -> Vec<Rc<RefCell<DirectoryNode>>> {
+        self.directory_tree.borrow().directories().to_vec()
     }
 
     pub fn files(&self) -> Vec<Rc<RefCell<FileNode>>> {
         self.directory_tree.borrow().files().to_vec()
-    }
-
-    pub fn dirs(&self) -> Vec<Rc<RefCell<DirNode>>> {
-        self.directory_tree.borrow().dirs().to_vec()
-    }
-
-    pub fn print_tree(&self) {
-        self.directory_tree.borrow().print_tree(None);
     }
 
     pub fn get_data(&self, entry: Rc<RefCell<FileNode>>) -> Vec<u8> {
