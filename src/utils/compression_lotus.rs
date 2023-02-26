@@ -148,14 +148,8 @@ fn get_block_lengths(cache_reader: &mut File) -> (usize, usize) {
         return (0, 0);
     }
 
-    let num1 = ((block_info[0] as u32) << 24)
-        | ((block_info[1] as u32) << 16)
-        | ((block_info[2] as u32) << 8)
-        | (block_info[3] as u32);
-    let num2 = ((block_info[4] as u32) << 24)
-        | ((block_info[5] as u32) << 16)
-        | ((block_info[6] as u32) << 8)
-        | (block_info[7] as u32);
+    let num1 = u32::from_be_bytes([block_info[0], block_info[1], block_info[2], block_info[3]]);
+    let num2 = u32::from_be_bytes([block_info[4], block_info[5], block_info[6], block_info[7]]);
 
     let block_comp_len = (num1 >> 2) & 0xFFFFFF;
     let block_decomp_len = (num2 >> 5) & 0xFFFFFF;
