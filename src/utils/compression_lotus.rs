@@ -1,5 +1,5 @@
 use anyhow::Result;
-use log::{debug, error};
+use log::debug;
 use std::cell::RefCell;
 use std::cmp::min_by;
 use std::fs::File;
@@ -48,22 +48,20 @@ pub fn internal_decompress_post_ensmallening(
         );
 
         if decompressed_pos + block_decompressed_len > decompressed_len {
-            error!(
+            return Err(anyhow::anyhow!(
                 "Decompressed past the file length, decompressed_pos: {}, decompressed_len: {}, file_len: {}",
                 decompressed_pos,
                 block_decompressed_len,
                 decompressed_len
-            );
-            panic!("Decompressed past the file length");
+            ));
         }
 
         if block_compressed_len > min_by(get_file_length(cache_reader), 0x40000, |a, b| a.cmp(b)) {
-            error!(
+            return Err(anyhow::anyhow!(
                 "Tried to read beyond limits, probably not a compressed file, compressed_len: {}, file_len: {}",
                 block_compressed_len,
                 get_file_length(cache_reader)
-            );
-            panic!("Tried to read beyond limits, probably not a compressed file");
+            ));
         }
 
         let is_oodle = is_oodle_block(cache_reader);
