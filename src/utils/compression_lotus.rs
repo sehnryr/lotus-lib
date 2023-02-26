@@ -132,14 +132,14 @@ pub fn internal_decompress_pre_ensmallening(
     Ok(decompressed_data)
 }
 
-fn is_oodle_block(cache_reader: &mut File) -> bool {
+pub fn is_oodle_block(cache_reader: &mut File) -> bool {
     let mut check_magic = [0u8; 1];
     cache_reader.read_exact(&mut check_magic).unwrap();
     cache_reader.seek(std::io::SeekFrom::Current(-1)).unwrap();
     check_magic[0] == 0x8C
 }
 
-fn get_block_lengths(cache_reader: &mut File) -> (usize, usize) {
+pub fn get_block_lengths(cache_reader: &mut File) -> (usize, usize) {
     let mut block_info = [0u8; 8];
     cache_reader.read_exact(&mut block_info).unwrap();
 
