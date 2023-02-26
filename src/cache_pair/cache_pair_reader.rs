@@ -1,12 +1,12 @@
-use super::cache_pair::CachePair;
+use anyhow::Result;
+use std::cell::RefCell;
+use std::io::{self, Read, Seek};
+use std::path::PathBuf;
+use std::rc::Rc;
+
+use crate::cache_pair::cache_pair::CachePair;
 use crate::toc::{DirectoryNode, DirectoryTree, FileNode};
 use crate::utils::{decompress_post_ensmallening, decompress_pre_ensmallening};
-use std::{
-    cell::RefCell,
-    io::{self, Read, Seek},
-    path::PathBuf,
-    rc::Rc,
-};
 
 pub struct CachePairReader {
     is_post_ensmallening: bool,
@@ -67,7 +67,7 @@ impl CachePairReader {
         self.directory_tree.borrow().files().to_vec()
     }
 
-    pub fn get_data(&self, entry: Rc<RefCell<FileNode>>) -> Vec<u8> {
+    pub fn get_data(&self, entry: Rc<RefCell<FileNode>>) -> Result<Vec<u8>> {
         let file_node = entry.borrow();
         let mut cache_reader = std::fs::File::open(self.cache_path.clone()).unwrap();
         cache_reader
@@ -76,10 +76,10 @@ impl CachePairReader {
 
         let mut data = vec![0; file_node.comp_len() as usize];
         cache_reader.read_exact(&mut data).unwrap();
-        data
+        Ok(data)
     }
 
-    pub fn decompress_data(&self, entry: Rc<RefCell<FileNode>>) -> Vec<u8> {
+    pub fn decompress_data(&self, entry: Rc<RefCell<FileNode>>) -> Result<Vec<u8>> {
         let file_node = entry.borrow();
         if file_node.comp_len() == file_node.len() {
             return self.get_data(entry.clone());

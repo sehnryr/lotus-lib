@@ -1,36 +1,36 @@
-use super::compression::{decompress_lz, decompress_oodle};
+use anyhow::Result;
+use log::{debug, error};
+use std::cell::RefCell;
+use std::cmp::min_by;
+use std::fs::File;
+use std::io::{Read, Seek};
+use std::rc::Rc;
+
 use crate::toc::FileNode;
-use log::error;
-use std::{
-    cell::RefCell,
-    cmp::min_by,
-    fs::File,
-    io::{Read, Seek},
-    rc::Rc,
-};
+use crate::utils::compression::{decompress_lz, decompress_oodle};
 
 pub fn decompress_post_ensmallening(
     entry: Rc<RefCell<FileNode>>,
     cache_reader: &mut File,
-) -> Vec<u8> {
+) -> Result<Vec<u8>> {
     cache_reader
         .seek(std::io::SeekFrom::Start(
             entry.borrow().cache_offset() as u64
         ))
         .unwrap();
 
-    _decompress_post_ensmallening(
+    internal_decompress_post_ensmallening(
         entry.borrow().comp_len() as usize,
         entry.borrow().len() as usize,
         cache_reader,
     )
 }
 
-pub fn _decompress_post_ensmallening(
+pub fn internal_decompress_post_ensmallening(
     compressed_len: usize,
     decompressed_len: usize,
     cache_reader: &mut File,
-) -> Vec<u8> {
+) -> Result<Vec<u8>> {
     let mut decompressed_data = vec![0u8; decompressed_len];
     let mut compressed_buffer = vec![0u8; 0x40000];
     let mut decompressed_pos = 0;
@@ -42,6 +42,10 @@ pub fn _decompress_post_ensmallening(
             block_compressed_len = compressed_len as usize;
             block_decompressed_len = decompressed_len as usize;
         }
+        debug!(
+            "Decompressing block, compressed_len: {}, decompressed_len: {}",
+            block_compressed_len, block_decompressed_len
+        );
 
         if decompressed_pos + block_decompressed_len > decompressed_len {
             error!(
@@ -68,48 +72,51 @@ pub fn _decompress_post_ensmallening(
             .unwrap();
 
         if is_oodle {
+            debug!("Decompressing with oodle ({} bytes)", block_compressed_len);
             decompress_oodle(
                 &compressed_buffer,
                 block_compressed_len,
                 &mut decompressed_data[decompressed_pos as usize..],
                 block_decompressed_len,
-            );
+            )?;
         } else {
+            debug!("Decompressing with lz4 ({} bytes)", block_compressed_len);
             decompress_lz(
                 &compressed_buffer,
                 block_compressed_len,
                 &mut decompressed_data[decompressed_pos as usize..],
                 block_decompressed_len,
-            );
+            )?;
         }
+        debug!("Decompressed {} bytes", block_decompressed_len);
         decompressed_pos += block_decompressed_len;
     }
 
-    decompressed_data
+    Ok(decompressed_data)
 }
 
 pub fn decompress_pre_ensmallening(
     entry: Rc<RefCell<FileNode>>,
     cache_reader: &mut File,
-) -> Vec<u8> {
+) -> Result<Vec<u8>> {
     cache_reader
         .seek(std::io::SeekFrom::Start(
             entry.borrow().cache_offset() as u64
         ))
         .unwrap();
 
-    _decompress_pre_ensmallening(
+    internal_decompress_pre_ensmallening(
         entry.borrow().comp_len() as usize,
         entry.borrow().len() as usize,
         cache_reader,
     )
 }
 
-pub fn _decompress_pre_ensmallening(
+pub fn internal_decompress_pre_ensmallening(
     compressed_len: usize,
     decompressed_len: usize,
     cache_reader: &mut File,
-) -> Vec<u8> {
+) -> Result<Vec<u8>> {
     let mut compressed_data = vec![0u8; compressed_len];
     let mut decompressed_data = vec![0u8; decompressed_len];
 
@@ -120,9 +127,9 @@ pub fn _decompress_pre_ensmallening(
         compressed_len,
         &mut decompressed_data,
         decompressed_len,
-    );
+    )?;
 
-    decompressed_data
+    Ok(decompressed_data)
 }
 
 fn is_oodle_block(cache_reader: &mut File) -> bool {

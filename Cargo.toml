@@ -15,6 +15,7 @@ exclude = ["src/main.rs"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.69"
 derivative = "2.2.0"
 indexmap = "1.9.2"
 log = "0.4.17"
