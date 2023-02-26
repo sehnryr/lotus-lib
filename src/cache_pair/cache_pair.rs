@@ -1,4 +1,5 @@
-use std::{io, path::PathBuf};
+use anyhow::Result;
+use std::path::PathBuf;
 
 pub trait CachePair {
     const MAGIC_NUMBER: u64 = 0x1867C64E;
@@ -8,6 +9,6 @@ pub trait CachePair {
     fn is_post_ensmallening(&self) -> bool;
     fn toc_path(&self) -> PathBuf;
     fn cache_path(&self) -> PathBuf;
-    fn read_toc(&self) -> Result<(), io::Error>;
+    fn read_toc(&self) -> Result<()>;
     fn unread_toc(&self);
 }

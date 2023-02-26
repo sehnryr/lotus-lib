@@ -1,6 +1,7 @@
-use super::package::Package;
-use crate::cache_pair::CachePair;
 use std::collections::HashMap;
+
+use crate::package::package::Package;
+use crate::cache_pair::CachePair;
 
 pub struct PackageCollection<T: CachePair> {
     directory: std::path::PathBuf,

@@ -1,15 +1,13 @@
-use super::{
-    directory_node::DirectoryNodeMut,
-    node::Node,
-    raw_toc_entry::{RawTocEntry, TOC_ENTRY_SIZE},
-    DirectoryNode, FileNode,
-};
-use std::{
-    cell::RefCell,
-    io::{self, Read, Seek},
-    path::{Component, PathBuf},
-    rc::Rc,
-};
+use anyhow::{Error, Result};
+use std::cell::RefCell;
+use std::io::{Read, Seek};
+use std::path::{Component, PathBuf};
+use std::rc::Rc;
+
+use crate::toc::directory_node::DirectoryNodeMut;
+use crate::toc::node::Node;
+use crate::toc::raw_toc_entry::{RawTocEntry, TOC_ENTRY_SIZE};
+use crate::toc::{DirectoryNode, FileNode};
 
 pub struct DirectoryTree {
     toc_path: std::path::PathBuf,
@@ -44,7 +42,7 @@ impl DirectoryTree {
         self.root.is_some()
     }
 
-    pub fn read_toc(&mut self) -> Result<(), io::Error> {
+    pub fn read_toc(&mut self) -> Result<()> {
         if self.is_loaded() {
             return Ok(()); // TOC already loaded
         }
@@ -83,7 +81,7 @@ impl DirectoryTree {
 
             let parent_node = match self.directories.get(entry.parent_dir_index as usize) {
                 Some(parent_node) => parent_node.clone(),
-                _ => return Err(io::Error::from(io::ErrorKind::InvalidData)),
+                _ => return Err(Error::msg("Failed to find parent directory")),
             };
 
             // If the cache offset is -1, then the entry is a directory

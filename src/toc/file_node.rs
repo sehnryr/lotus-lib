@@ -1,9 +1,9 @@
-use super::{node::Node, DirectoryNode};
-use std::{
-    cell::RefCell,
-    path::PathBuf,
-    rc::{Rc, Weak},
-};
+use std::cell::RefCell;
+use std::path::PathBuf;
+use std::rc::{Rc, Weak};
+
+use crate::toc::node::Node;
+use crate::toc::DirectoryNode;
 
 #[derive(Clone, Debug)]
 pub struct FileNode {

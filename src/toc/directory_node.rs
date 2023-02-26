@@ -1,10 +1,10 @@
-use super::{node::Node, FileNode};
 use indexmap::IndexMap;
-use std::{
-    cell::RefCell,
-    path::PathBuf,
-    rc::{Rc, Weak},
-};
+use std::cell::RefCell;
+use std::path::PathBuf;
+use std::rc::{Rc, Weak};
+
+use crate::toc::node::Node;
+use crate::toc::FileNode;
 
 #[derive(Clone, Debug)]
 pub struct DirectoryNode {

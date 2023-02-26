@@ -1,6 +1,6 @@
 use anyhow::Result;
 use std::cell::RefCell;
-use std::io::{self, Read, Seek};
+use std::io::{Read, Seek};
 use std::path::PathBuf;
 use std::rc::Rc;
 
@@ -38,7 +38,7 @@ impl CachePair for CachePairReader {
         self.cache_path.clone()
     }
 
-    fn read_toc(&self) -> Result<(), io::Error> {
+    fn read_toc(&self) -> Result<()> {
         self.directory_tree.borrow_mut().read_toc()
     }
 

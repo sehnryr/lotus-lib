@@ -1,5 +1,8 @@
-use super::DirectoryNode;
-use std::{cell::RefCell, path::PathBuf, rc::Weak};
+use std::cell::RefCell;
+use std::path::PathBuf;
+use std::rc::Weak;
+
+use crate::toc::DirectoryNode;
 
 pub trait Node {
     fn name(&self) -> String;
