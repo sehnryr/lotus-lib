@@ -77,6 +77,10 @@ pub fn internal_decompress_post_ensmallening(
                 &mut decompressed_data[decompressed_pos as usize..],
                 block_decompressed_len,
             )?;
+        } else if block_compressed_len == block_decompressed_len {
+            debug!("Copying ({} bytes)", block_compressed_len);
+            decompressed_data[decompressed_pos as usize..block_decompressed_len]
+                .copy_from_slice(&compressed_buffer[..block_compressed_len]);
         } else {
             debug!("Decompressing with lz4 ({} bytes)", block_compressed_len);
             decompress_lz(
