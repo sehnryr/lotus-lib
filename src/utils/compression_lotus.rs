@@ -79,7 +79,7 @@ pub fn internal_decompress_post_ensmallening(
             )?;
         } else if block_compressed_len == block_decompressed_len {
             debug!("Copying ({} bytes)", block_compressed_len);
-            decompressed_data[decompressed_pos as usize..block_decompressed_len]
+            decompressed_data[decompressed_pos as usize..decompressed_pos + block_decompressed_len]
                 .copy_from_slice(&compressed_buffer[..block_compressed_len]);
         } else {
             debug!("Decompressing with lz4 ({} bytes)", block_compressed_len);
