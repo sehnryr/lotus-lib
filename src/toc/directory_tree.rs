@@ -71,13 +71,13 @@ impl DirectoryTree {
             toc_reader.read_exact(&mut buffer).unwrap();
             let entry = RawTocEntry::from(&buffer);
 
-            let entry_name_buffer = entry
-                .name
-                .iter()
-                .filter(|x| !x.is_ascii_control())
-                .cloned()
-                .collect::<Vec<u8>>();
-            let entry_name = String::from_utf8(entry_name_buffer).unwrap();
+            // Entry name is a null-terminated string, so we need to find the
+            // index of the null byte and truncate the string there
+            let entry_name = match entry.name.iter().position(|&x| x == 0) {
+                Some(index) => String::from_utf8_lossy(&entry.name[0..index]),
+                _ => String::from_utf8_lossy(&entry.name),
+            }
+            .to_string();
 
             let parent_node = match self.directories.get(entry.parent_dir_index as usize) {
                 Some(parent_node) => parent_node.clone(),
