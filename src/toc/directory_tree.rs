@@ -66,10 +66,13 @@ impl DirectoryTree {
         let root = Rc::new(RefCell::new(DirectoryNode::root()));
         self.directories.insert(0, root.clone());
 
-        for _ in 0..entry_count {
-            let mut buffer = [0 as u8; TOC_ENTRY_SIZE];
-            toc_reader.read_exact(&mut buffer).unwrap();
-            let entry = RawTocEntry::from(&buffer);
+        let mut buffer = vec![0 as u8; TOC_ENTRY_SIZE * entry_count];
+        toc_reader.read_exact(&mut buffer).unwrap();
+
+        for i in 0..entry_count {
+            let mut sized_buffer = [0 as u8; TOC_ENTRY_SIZE];
+            sized_buffer.copy_from_slice(&buffer[i * TOC_ENTRY_SIZE..(i + 1) * TOC_ENTRY_SIZE]);
+            let entry = RawTocEntry::from(&sized_buffer);
 
             // Entry name is a null-terminated string, so we need to find the
             // index of the null byte and truncate the string there
