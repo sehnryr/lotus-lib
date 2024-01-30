@@ -1,27 +1,20 @@
 use anyhow::Result;
 use log::debug;
-use std::cell::RefCell;
 use std::cmp::min_by;
 use std::fs::File;
-use std::io::{Read, Seek};
-use std::rc::Rc;
+use std::io::{Read, Seek, SeekFrom};
 
-use crate::toc::FileNode;
+use crate::toc::{FileNode, Node};
 use crate::utils::compression::{decompress_lz, decompress_oodle};
 
-pub fn decompress_post_ensmallening(
-    entry: Rc<RefCell<FileNode>>,
-    cache_reader: &mut File,
-) -> Result<Vec<u8>> {
+pub fn decompress_post_ensmallening(entry: Node, cache_reader: &mut File) -> Result<Vec<u8>> {
     cache_reader
-        .seek(std::io::SeekFrom::Start(
-            entry.borrow().cache_offset() as u64
-        ))
+        .seek(SeekFrom::Start(entry.cache_offset() as u64))
         .unwrap();
 
     internal_decompress_post_ensmallening(
-        entry.borrow().comp_len() as usize,
-        entry.borrow().len() as usize,
+        entry.comp_len() as usize,
+        entry.len() as usize,
         cache_reader,
     )
 }
@@ -97,19 +90,14 @@ pub fn internal_decompress_post_ensmallening(
     Ok(decompressed_data)
 }
 
-pub fn decompress_pre_ensmallening(
-    entry: Rc<RefCell<FileNode>>,
-    cache_reader: &mut File,
-) -> Result<Vec<u8>> {
+pub fn decompress_pre_ensmallening(entry: Node, cache_reader: &mut File) -> Result<Vec<u8>> {
     cache_reader
-        .seek(std::io::SeekFrom::Start(
-            entry.borrow().cache_offset() as u64
-        ))
+        .seek(SeekFrom::Start(entry.cache_offset() as u64))
         .unwrap();
 
     internal_decompress_pre_ensmallening(
-        entry.borrow().comp_len() as usize,
-        entry.borrow().len() as usize,
+        entry.comp_len() as usize,
+        entry.len() as usize,
         cache_reader,
     )
 }
@@ -137,7 +125,7 @@ pub fn internal_decompress_pre_ensmallening(
 pub fn is_oodle_block(cache_reader: &mut File) -> bool {
     let mut check_magic = [0u8; 1];
     cache_reader.read_exact(&mut check_magic).unwrap();
-    cache_reader.seek(std::io::SeekFrom::Current(-1)).unwrap();
+    cache_reader.seek(SeekFrom::Current(-1)).unwrap();
     check_magic[0] == 0x8C
 }
 
@@ -146,7 +134,7 @@ pub fn get_block_lengths(cache_reader: &mut File) -> (usize, usize) {
     cache_reader.read_exact(&mut block_info).unwrap();
 
     if block_info[0] != 0x80 || (block_info[7] & 0x0F) != 0x1 {
-        cache_reader.seek(std::io::SeekFrom::Current(-8)).unwrap();
+        cache_reader.seek(SeekFrom::Current(-8)).unwrap();
         return (0, 0);
     }
 

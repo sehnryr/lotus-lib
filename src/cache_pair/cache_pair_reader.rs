@@ -1,28 +1,29 @@
 use anyhow::Result;
 use std::cell::RefCell;
-use std::io::{Read, Seek};
+use std::fs::File;
+use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::rc::Rc;
 
 use crate::cache_pair::cache_pair::CachePair;
-use crate::toc::{DirectoryNode, DirectoryTree, FileNode};
+use crate::toc::{FileNode, Node, Toc};
 use crate::utils::{decompress_post_ensmallening, decompress_pre_ensmallening};
 
 pub struct CachePairReader {
     is_post_ensmallening: bool,
-    toc_path: std::path::PathBuf,
-    cache_path: std::path::PathBuf,
-    directory_tree: Rc<RefCell<DirectoryTree>>,
+    toc_path: PathBuf,
+    cache_path: PathBuf,
+    toc: Rc<RefCell<Toc>>,
 }
 
 impl CachePair for CachePairReader {
     fn new(toc_path: PathBuf, cache_path: PathBuf, is_post_ensmallening: bool) -> Self {
-        let directory_tree = Rc::new(RefCell::new(DirectoryTree::new(toc_path.clone())));
+        let toc = Rc::new(RefCell::new(Toc::new(toc_path.clone())));
         Self {
             is_post_ensmallening,
             toc_path,
             cache_path,
-            directory_tree,
+            toc,
         }
     }
 
@@ -39,39 +40,35 @@ impl CachePair for CachePairReader {
     }
 
     fn read_toc(&self) -> Result<()> {
-        self.directory_tree.borrow_mut().read_toc()
+        self.toc.borrow_mut().read_toc()
     }
 
     fn unread_toc(&self) {
-        self.directory_tree.borrow_mut().unread_toc();
+        self.toc.borrow_mut().unread_toc();
     }
 }
 
 impl CachePairReader {
-    pub fn get_directory_node<T: Into<PathBuf>>(
-        &self,
-        path: T,
-    ) -> Option<Rc<RefCell<DirectoryNode>>> {
-        self.directory_tree.borrow().get_directory_node(path.into())
+    pub fn get_directory_node<T: Into<PathBuf>>(&self, path: T) -> Option<Node> {
+        self.toc.borrow().get_directory_node(path.into())
     }
 
-    pub fn get_file_node<T: Into<PathBuf>>(&self, path: T) -> Option<Rc<RefCell<FileNode>>> {
-        self.directory_tree.borrow().get_file_node(path.into())
+    pub fn get_file_node<T: Into<PathBuf>>(&self, path: T) -> Option<Node> {
+        self.toc.borrow().get_file_node(path.into())
     }
 
-    pub fn directories(&self) -> Vec<Rc<RefCell<DirectoryNode>>> {
-        self.directory_tree.borrow().directories().to_vec()
+    pub fn directories(&self) -> Vec<Node> {
+        self.toc.borrow().directories()
     }
 
-    pub fn files(&self) -> Vec<Rc<RefCell<FileNode>>> {
-        self.directory_tree.borrow().files().to_vec()
+    pub fn files(&self) -> Vec<Node> {
+        self.toc.borrow().files()
     }
 
-    pub fn get_data(&self, entry: Rc<RefCell<FileNode>>) -> Result<Vec<u8>> {
-        let file_node = entry.borrow();
-        let mut cache_reader = std::fs::File::open(self.cache_path.clone()).unwrap();
+    pub fn get_data(&self, file_node: Node) -> Result<Vec<u8>> {
+        let mut cache_reader = File::open(self.cache_path.clone()).unwrap();
         cache_reader
-            .seek(std::io::SeekFrom::Start(file_node.cache_offset() as u64))
+            .seek(SeekFrom::Start(file_node.cache_offset() as u64))
             .unwrap();
 
         let mut data = vec![0; file_node.comp_len() as usize];
@@ -79,18 +76,17 @@ impl CachePairReader {
         Ok(data)
     }
 
-    pub fn decompress_data(&self, entry: Rc<RefCell<FileNode>>) -> Result<Vec<u8>> {
-        let file_node = entry.borrow();
+    pub fn decompress_data(&self, file_node: Node) -> Result<Vec<u8>> {
         if file_node.comp_len() == file_node.len() {
-            return self.get_data(entry.clone());
+            return self.get_data(file_node);
         }
 
-        let mut cache_reader = std::fs::File::open(self.cache_path.clone()).unwrap();
+        let mut cache_reader = File::open(self.cache_path.clone()).unwrap();
 
         if self.is_post_ensmallening {
-            return decompress_post_ensmallening(entry.clone(), &mut cache_reader);
+            return decompress_post_ensmallening(file_node, &mut cache_reader);
         } else {
-            return decompress_pre_ensmallening(entry.clone(), &mut cache_reader);
+            return decompress_pre_ensmallening(file_node, &mut cache_reader);
         }
     }
 }

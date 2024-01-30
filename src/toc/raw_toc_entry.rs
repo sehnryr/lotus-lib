@@ -14,9 +14,15 @@ pub struct RawTocEntry {
     pub name: [u8; 64],
 }
 
-impl From<&[u8; TOC_ENTRY_SIZE]> for RawTocEntry {
-    fn from(bytes: &[u8; TOC_ENTRY_SIZE]) -> Self {
-        Self {
+impl TryFrom<&[u8]> for RawTocEntry {
+    type Error = ();
+
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        if bytes.len() != TOC_ENTRY_SIZE {
+            return Err(());
+        }
+
+        Ok(Self {
             cache_offset: i64::from_le_bytes(bytes[0..8].try_into().unwrap()),
             timestamp: i64::from_le_bytes(bytes[8..16].try_into().unwrap()),
             comp_len: i32::from_le_bytes(bytes[16..20].try_into().unwrap()),
@@ -24,6 +30,6 @@ impl From<&[u8; TOC_ENTRY_SIZE]> for RawTocEntry {
             reserved: i32::from_le_bytes(bytes[24..28].try_into().unwrap()),
             parent_dir_index: i32::from_le_bytes(bytes[28..32].try_into().unwrap()),
             name: bytes[32..96].try_into().unwrap(),
-        }
+        })
     }
 }
