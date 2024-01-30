@@ -64,7 +64,7 @@ impl Toc {
         let root = Node::root();
         self.directories.insert(0, root.clone());
 
-        let mut buffer = vec![0 as u8; TOC_ENTRY_SIZE * entry_count];
+        let mut buffer = vec![0u8; TOC_ENTRY_SIZE * entry_count];
         toc_reader.read_exact(&mut buffer).unwrap();
 
         let entries = RawTocEntry::slice_from(&buffer).unwrap();
