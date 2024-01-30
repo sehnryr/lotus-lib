@@ -2,6 +2,7 @@ use anyhow::{Error, Result};
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::{Component, PathBuf};
+use zerocopy::FromBytes;
 
 use crate::toc::node::{DirectoryNode, Node, NodeKind};
 use crate::toc::raw_toc_entry::{RawTocEntry, TOC_ENTRY_SIZE};
@@ -66,10 +67,8 @@ impl Toc {
         let mut buffer = vec![0 as u8; TOC_ENTRY_SIZE * entry_count];
         toc_reader.read_exact(&mut buffer).unwrap();
 
-        for i in 0..entry_count {
-            let entry_buffer = &buffer[i * TOC_ENTRY_SIZE..(i + 1) * TOC_ENTRY_SIZE];
-            let entry = RawTocEntry::try_from(entry_buffer).unwrap();
-
+        let entries = RawTocEntry::slice_from(&buffer).unwrap();
+        for entry in entries {
             // Entry name is a null-terminated string, so we need to find the
             // index of the null byte and truncate the string there
             let entry_name = match entry.name.iter().position(|&x| x == 0) {

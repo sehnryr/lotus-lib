@@ -21,3 +21,4 @@ log = "0.4.17"
 lz4_flex = "0.9.5"
 oodle-sys = "0.1"
 rctree = "0.6.0"
+zerocopy = { version = "0.7.32", features = ["derive"] }
