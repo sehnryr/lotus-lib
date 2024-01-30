@@ -7,7 +7,7 @@ pub const TOC_ENTRY_SIZE: usize = 96;
 
 #[repr(C)]
 #[derive(FromBytes, FromZeroes)]
-pub struct RawTocEntry {
+pub(crate) struct RawTocEntry {
     pub cache_offset: i64,
     pub timestamp: i64,
     pub comp_len: i32,

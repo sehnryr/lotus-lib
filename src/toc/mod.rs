@@ -3,5 +3,4 @@ mod raw_toc_entry;
 mod toc;
 
 pub use node::{DirectoryNode, FileNode, Node, NodeKind};
-pub use raw_toc_entry::RawTocEntry;
 pub use toc::Toc;
