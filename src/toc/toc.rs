@@ -81,12 +81,9 @@ impl Toc {
                 _ => return Err(Error::msg("Failed to find parent directory")),
             };
 
-            // Create the path for the entry
-            let entry_path = parent_node.path().join(&entry_name);
-
             // If the cache offset is -1, then the entry is a directory
             if entry.cache_offset == -1 {
-                let dir_node = Node::directory(entry_name, entry_path);
+                let dir_node = Node::directory(entry_name);
 
                 self.directories.insert(dir_count, dir_node.clone());
                 parent_node.append(dir_node);
@@ -95,7 +92,6 @@ impl Toc {
             } else {
                 let file_node = Node::file(
                     entry_name,
-                    entry_path,
                     entry.cache_offset,
                     entry.timestamp,
                     entry.comp_len,

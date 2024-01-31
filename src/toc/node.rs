@@ -13,9 +13,8 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new(
+    pub(crate) fn new(
         name: String,
-        path: PathBuf,
         kind: NodeKind,
         cache_offset: Option<i64>,
         timestamp: Option<i64>,
@@ -25,7 +24,6 @@ impl Node {
         Self {
             node: RcNode::new(NodeInner::new(
                 name,
-                path,
                 kind,
                 cache_offset,
                 timestamp,
@@ -35,11 +33,10 @@ impl Node {
         }
     }
 
-    pub fn root() -> Self {
+    pub(crate) fn root() -> Self {
         Self {
             node: RcNode::new(NodeInner::new(
                 "".into(),
-                PathBuf::from("/"),
                 NodeKind::Directory,
                 None,
                 None,
@@ -49,9 +46,8 @@ impl Node {
         }
     }
 
-    pub fn file(
+    pub(crate) fn file(
         name: String,
-        path: PathBuf,
         cache_offset: i64,
         timestamp: i64,
         comp_len: i32,
@@ -59,7 +55,6 @@ impl Node {
     ) -> Self {
         Self::new(
             name,
-            path,
             NodeKind::File,
             Some(cache_offset),
             Some(timestamp),
@@ -68,8 +63,8 @@ impl Node {
         )
     }
 
-    pub fn directory(name: String, path: PathBuf) -> Self {
-        Self::new(name, path, NodeKind::Directory, None, None, None, None)
+    pub(crate) fn directory(name: String) -> Self {
+        Self::new(name, NodeKind::Directory, None, None, None, None)
     }
 
     pub fn name(&self) -> String {
@@ -77,7 +72,18 @@ impl Node {
     }
 
     pub fn path(&self) -> PathBuf {
-        self.node.borrow().path.clone()
+        let ancestors = self.node.ancestors();
+        let ancestors_names: Vec<String> = ancestors
+            .map(|ancestors| ancestors.borrow().name.clone())
+            .collect();
+
+        let mut path = PathBuf::from("/");
+
+        for ancestor_name in ancestors_names.into_iter().rev() {
+            path.push(ancestor_name);
+        }
+
+        path
     }
 
     pub fn kind(&self) -> NodeKind {
@@ -136,7 +142,6 @@ impl DirectoryNode for Node {
 #[derive(Debug)]
 struct NodeInner {
     pub(crate) name: String,
-    pub(crate) path: PathBuf,
     pub(crate) kind: NodeKind,
     pub(crate) cache_offset: Option<i64>,
     pub(crate) timestamp: Option<i64>,
@@ -145,9 +150,8 @@ struct NodeInner {
 }
 
 impl NodeInner {
-    pub fn new(
+    pub(crate) fn new(
         name: String,
-        path: PathBuf,
         kind: NodeKind,
         cache_offset: Option<i64>,
         timestamp: Option<i64>,
@@ -156,7 +160,6 @@ impl NodeInner {
     ) -> Self {
         Self {
             name,
-            path,
             kind,
             cache_offset,
             timestamp,
