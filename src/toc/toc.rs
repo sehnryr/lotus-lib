@@ -1,4 +1,4 @@
-use anyhow::{Error, Result};
+use anyhow::Result;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::{Component, PathBuf};
@@ -76,17 +76,17 @@ impl Toc {
                 _ => std::str::from_utf8(&entry.name),
             }?.to_string();
 
-            let parent_node = match self.directories.get(entry.parent_dir_index as usize) {
-                Some(parent_node) => parent_node.clone(),
-                _ => return Err(Error::msg("Failed to find parent directory")),
-            };
+            let parent_node = self
+                .directories
+                .get(entry.parent_dir_index as usize)
+                .unwrap();
 
             // If the cache offset is -1, then the entry is a directory
             if entry.cache_offset == -1 {
                 let dir_node = Node::directory(entry_name);
 
-                self.directories.insert(dir_count, dir_node.clone());
-                parent_node.append(dir_node);
+                parent_node.append(dir_node.clone());
+                self.directories.insert(dir_count, dir_node);
 
                 dir_count += 1;
             } else {
@@ -98,8 +98,8 @@ impl Toc {
                     entry.len,
                 );
 
-                self.files.insert(file_count, file_node.clone());
-                parent_node.append(file_node);
+                parent_node.append(file_node.clone());
+                self.files.insert(file_count, file_node);
 
                 file_count += 1;
             }
