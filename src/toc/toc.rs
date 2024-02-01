@@ -77,10 +77,11 @@ impl Toc {
 
             // Entry name is a null-terminated string, so we need to find the
             // index of the null byte and truncate the string there
-            let entry_name: String = match entry.name.iter().position(|&x| x == 0) {
-                Some(index) => std::str::from_utf8(&entry.name[0..index]),
-                _ => std::str::from_utf8(&entry.name),
-            }?.to_string();
+            let entry_name = {
+                let null_index = entry.name.iter().position(|&x| x == 0).unwrap_or(64);
+                let entry_name = std::str::from_utf8(&entry.name[..null_index])?;
+                entry_name.to_string()
+            };
 
             let parent_node = self
                 .directories
