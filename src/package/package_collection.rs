@@ -22,23 +22,37 @@ impl<T: CachePair> PackageCollection<T> {
 
     fn load_packages(&mut self) {
         let package_directory = self.directory.clone();
-        for entry in std::fs::read_dir(package_directory).unwrap() {
+        for entry in std::fs::read_dir(package_directory.clone()).unwrap() {
             let entry = entry.unwrap();
             let file_name = entry.file_name().into_string().unwrap();
 
-            let start = file_name.find('.');
-            let end = file_name.rfind('.');
-
-            if start.is_none() || end.is_none() || start.unwrap() == end.unwrap() {
+            // Check if the file has enough characters to be a package
+            // 7 characters counts for the shortest possible package name of
+            // 1 character : H.1.toc
+            if file_name.len() < 7 {
                 continue;
             }
 
-            let mut directory = entry.path();
-            directory.pop();
+            // Check if the file is a .toc file
+            if !file_name.ends_with(".toc") {
+                continue;
+            }
 
-            let package_name = file_name[start.unwrap() + 1..end.unwrap()].to_string();
-            let package: Package<T> =
-                Package::new(directory, package_name.clone(), self.is_post_ensmallening);
+            // Check if the file is a valid package
+            if !(file_name.starts_with("H.")
+                || file_name.starts_with("B.")
+                || file_name.starts_with("F."))
+            {
+                continue;
+            }
+
+            let package_name = file_name[2..file_name.len() - 4].to_string();
+
+            let package = Package::new(
+                package_directory.clone(),
+                package_name.clone(),
+                self.is_post_ensmallening,
+            );
             self.packages.insert(package_name, package);
         }
     }
