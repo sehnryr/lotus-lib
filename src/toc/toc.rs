@@ -69,6 +69,12 @@ impl Toc {
 
         let entries = RawTocEntry::slice_from(&buffer).unwrap();
         for entry in entries {
+            // Entry timestamp of 0 means the entry has been replaced with a
+            // newer version with the same name and path with a valid timestamp
+            if entry.timestamp == 0 {
+                continue;
+            }
+
             // Entry name is a null-terminated string, so we need to find the
             // index of the null byte and truncate the string there
             let entry_name: String = match entry.name.iter().position(|&x| x == 0) {
