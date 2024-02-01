@@ -1,7 +1,8 @@
-use anyhow::Result;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::{Component, PathBuf};
+
+use anyhow::Result;
 use zerocopy::FromBytes;
 
 use crate::toc::node::{DirectoryNode, Node, NodeKind};

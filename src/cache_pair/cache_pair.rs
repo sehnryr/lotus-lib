@@ -1,5 +1,6 @@
-use anyhow::Result;
 use std::path::PathBuf;
+
+use anyhow::Result;
 
 pub trait CachePair {
     const MAGIC_NUMBER: u64 = 0x1867C64E;

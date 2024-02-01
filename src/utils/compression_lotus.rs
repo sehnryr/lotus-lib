@@ -1,8 +1,9 @@
-use anyhow::Result;
-use log::debug;
 use std::cmp::min_by;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
+
+use anyhow::Result;
+use log::debug;
 
 use crate::toc::{FileNode, Node};
 use crate::utils::compression::{decompress_lz, decompress_oodle};

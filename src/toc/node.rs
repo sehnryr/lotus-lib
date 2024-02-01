@@ -1,5 +1,6 @@
-use rctree::Node as RcNode;
 use std::path::PathBuf;
+
+use rctree::Node as RcNode;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum NodeKind {
