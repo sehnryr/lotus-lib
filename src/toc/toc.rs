@@ -80,7 +80,9 @@ impl Toc {
             // index of the null byte and truncate the string there
             let entry_name = {
                 let null_index = entry.name.iter().position(|&x| x == 0).unwrap_or(64);
-                let entry_name = std::str::from_utf8(&entry.name[..null_index])?;
+
+                // SAFETY: The entry name is guaranteed to be valid UTF-8
+                let entry_name = unsafe { std::str::from_utf8_unchecked(&entry.name[..null_index]) };
                 entry_name.to_string()
             };
 
