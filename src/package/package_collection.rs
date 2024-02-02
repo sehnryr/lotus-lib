@@ -1,12 +1,10 @@
-use std::collections::HashMap;
-
 use crate::cache_pair::CachePair;
 use crate::package::package::Package;
 
 pub struct PackageCollection<T: CachePair> {
     directory: std::path::PathBuf,
     is_post_ensmallening: bool,
-    packages: HashMap<String, Package<T>>,
+    packages: Vec<Package<T>>,
 }
 
 impl<T: CachePair> PackageCollection<T> {
@@ -14,7 +12,7 @@ impl<T: CachePair> PackageCollection<T> {
         let mut package_collection = Self {
             directory,
             is_post_ensmallening,
-            packages: HashMap::new(),
+            packages: Vec::new(),
         };
         package_collection.load_packages();
         package_collection
@@ -42,10 +40,10 @@ impl<T: CachePair> PackageCollection<T> {
 
             let package = Package::new(
                 package_directory.clone(),
-                package_name.clone(),
+                package_name,
                 self.is_post_ensmallening,
             );
-            self.packages.insert(package_name, package);
+            self.packages.push(package);
         }
     }
 
@@ -54,14 +52,16 @@ impl<T: CachePair> PackageCollection<T> {
     }
 
     pub fn get_package(&self, package_name: &str) -> Option<&Package<T>> {
-        self.packages.get(package_name)
+        self.packages
+            .iter()
+            .find(|package| package.name() == package_name)
     }
 
     pub fn directory(&self) -> &std::path::PathBuf {
         &self.directory
     }
 
-    pub fn packages(&self) -> &HashMap<String, Package<T>> {
+    pub fn packages(&self) -> &Vec<Package<T>> {
         &self.packages
     }
 }
