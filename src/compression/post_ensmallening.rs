@@ -34,13 +34,12 @@ pub fn decompress_post_ensmallening(
             ));
         }
 
-        let cache_length = get_file_length(cache_reader)?;
-        debug!("Cache length: {}", cache_length);
-        if block_comp_len > min_by(cache_length, 0x40000, |a, b| a.cmp(b)) {
+        let remaining_len = get_remaining_length(cache_reader)?;
+        if block_comp_len > min_by(remaining_len, 0x40000, |a, b| a.cmp(b)) {
             return Err(anyhow::anyhow!(
-                "Tried to read beyond limits, probably not a compressed file, compressed_len: {}, file_len: {}",
+                "Tried to read beyond limits, probably not a compressed file, compressed_len: {}, remaining_len: {}",
                 block_comp_len,
-                cache_length
+                remaining_len
             ));
         }
 
@@ -100,6 +99,6 @@ pub fn get_block_lengths(cache_reader: &mut File) -> Result<Option<(usize, usize
     Ok(Some((block_comp_len as usize, block_decomp_len as usize)))
 }
 
-fn get_file_length(cache_reader: &File) -> Result<usize> {
-    Ok(cache_reader.metadata()?.len() as usize)
+fn get_remaining_length(cache_reader: &mut File) -> Result<usize> {
+    Ok(cache_reader.metadata()?.len() as usize - cache_reader.seek(SeekFrom::Current(0))? as usize)
 }
