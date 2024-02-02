@@ -17,6 +17,8 @@ pub fn decompress_post_ensmallening(
     let mut compressed_buffer = vec![0u8; 0x40000];
     let mut decompressed_pos = 0;
 
+    let cache_len = cache_reader.metadata()?.len() as usize;
+
     while decompressed_pos < decompressed_len {
         let (block_comp_len, block_decomp_len) =
             get_block_lengths(cache_reader)?.unwrap_or((compressed_len, decompressed_len));
@@ -35,7 +37,8 @@ pub fn decompress_post_ensmallening(
             ));
         }
 
-        let remaining_len = get_remaining_length(cache_reader)?;
+        let cache_offset = cache_reader.seek(SeekFrom::Current(0))? as usize;
+        let remaining_len = cache_len - cache_offset;
         if block_comp_len > min_by(remaining_len, 0x40000, |a, b| a.cmp(b)) {
             return Err(anyhow::anyhow!(
                 "Tried to read beyond limits, probably not a compressed file, \
@@ -99,8 +102,4 @@ pub fn get_block_lengths(cache_reader: &mut File) -> Result<Option<(usize, usize
     let block_decomp_len = (num2 >> 5) & 0xFFFFFF;
 
     Ok(Some((block_comp_len as usize, block_decomp_len as usize)))
-}
-
-fn get_remaining_length(cache_reader: &mut File) -> Result<usize> {
-    Ok(cache_reader.metadata()?.len() as usize - cache_reader.seek(SeekFrom::Current(0))? as usize)
 }
