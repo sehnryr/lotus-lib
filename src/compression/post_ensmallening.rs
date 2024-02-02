@@ -27,7 +27,8 @@ pub fn decompress_post_ensmallening(
 
         if decompressed_pos + block_decomp_len > decompressed_len {
             return Err(anyhow::anyhow!(
-                "Decompressed past the file length, decompressed_pos: {}, decompressed_len: {}, file_len: {}",
+                "Decompressed past the file length, \
+                decompressed_pos: {}, decompressed_len: {}, file_len: {}",
                 decompressed_pos,
                 block_decomp_len,
                 decompressed_len
@@ -37,7 +38,8 @@ pub fn decompress_post_ensmallening(
         let remaining_len = get_remaining_length(cache_reader)?;
         if block_comp_len > min_by(remaining_len, 0x40000, |a, b| a.cmp(b)) {
             return Err(anyhow::anyhow!(
-                "Tried to read beyond limits, probably not a compressed file, compressed_len: {}, remaining_len: {}",
+                "Tried to read beyond limits, probably not a compressed file, \
+                compressed_len: {}, remaining_len: {}",
                 block_comp_len,
                 remaining_len
             ));
