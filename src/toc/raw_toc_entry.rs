@@ -1,9 +1,10 @@
+use std::mem;
+
 use zerocopy::{FromBytes, FromZeroes};
 
 // This const is the size of a single TOC entry in bytes. It is used to
 // determine the size of the buffer to read from the TOC file.
-// Same as mem::size_of::<RawTocEntry>()
-pub const TOC_ENTRY_SIZE: usize = 96;
+pub const TOC_ENTRY_SIZE: usize = mem::size_of::<RawTocEntry>();
 
 #[repr(C)]
 #[derive(FromBytes, FromZeroes)]
