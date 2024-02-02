@@ -1,5 +1,4 @@
 use anyhow::{Error, Result};
-use lz4_flex::decompress_size_prepended;
 use oodle_sys::{
     OodleLZ_CheckCRC_OodleLZ_CheckCRC_No, OodleLZ_Decode_ThreadPhase_OodleLZ_Decode_ThreadPhaseAll,
     OodleLZ_Decompress, OodleLZ_FuzzSafe_OodleLZ_FuzzSafe_Yes,
@@ -39,16 +38,4 @@ pub fn decompress_oodle(
     } else {
         Ok(())
     }
-}
-
-pub fn decompress_lz(
-    compressed_data: &[u8],
-    compressed_len: usize,
-    decompressed_data: &mut [u8],
-    decompressed_len: usize,
-) -> Result<()> {
-    let decompressed_data_buffer: Vec<u8> =
-        decompress_size_prepended(&compressed_data[..compressed_len])?;
-    decompressed_data[..decompressed_len].copy_from_slice(&decompressed_data_buffer);
-    Ok(())
 }
