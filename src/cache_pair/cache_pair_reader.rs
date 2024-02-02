@@ -83,11 +83,20 @@ impl CachePairReader {
         }
 
         let mut cache_reader = File::open(self.cache_path.clone()).unwrap();
+        cache_reader.seek(SeekFrom::Start(file_node.cache_offset() as u64))?;
 
         if self.is_post_ensmallening {
-            return decompress_post_ensmallening(file_node, &mut cache_reader);
+            return decompress_post_ensmallening(
+                file_node.comp_len() as usize,
+                file_node.len() as usize,
+                &mut cache_reader,
+            );
         } else {
-            return decompress_pre_ensmallening(file_node, &mut cache_reader);
+            return decompress_pre_ensmallening(
+                file_node.comp_len() as usize,
+                file_node.len() as usize,
+                &mut cache_reader,
+            );
         }
     }
 }
