@@ -33,16 +33,8 @@ impl<T: CachePair> PackageCollection<T> {
                 continue;
             }
 
-            // Check if the file is a .toc file
-            if !file_name.ends_with(".toc") {
-                continue;
-            }
-
-            // Check if the file is a valid package
-            if !(file_name.starts_with("H.")
-                || file_name.starts_with("B.")
-                || file_name.starts_with("F."))
-            {
+            // Check if the file is a valid header .toc file
+            if !file_name.starts_with("H.") || !file_name.ends_with(".toc") {
                 continue;
             }
 
