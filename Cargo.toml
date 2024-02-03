@@ -14,6 +14,11 @@ exclude = ["src/main.rs"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+post_ensmallening = []
+pre_ensmallening = []
+internal = ["post_ensmallening", "pre_ensmallening"]
+
 [dependencies]
 anyhow = "1.0.69"
 derivative = "2.2.0"

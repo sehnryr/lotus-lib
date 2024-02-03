@@ -7,7 +7,8 @@ use std::rc::Rc;
 use anyhow::Result;
 
 use crate::cache_pair::cache_pair::CachePair;
-use crate::compression::{decompress_post_ensmallening, decompress_pre_ensmallening};
+use crate::compression::post_ensmallening::decompress_post_ensmallening;
+use crate::compression::pre_ensmallening::decompress_pre_ensmallening;
 use crate::toc::{FileNode, Node, Toc};
 
 pub struct CachePairReader {
