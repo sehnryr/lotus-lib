@@ -12,7 +12,7 @@ readme = "README.md"
 license = "MIT"
 keywords = ["warframe", "cache", "decompression"]
 categories = ["encoding", "filesystem", "parsing"]
-exclude = ["src/main.rs"]
+exclude = [".*"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
