@@ -1,8 +1,6 @@
-use std::cell::RefCell;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
-use std::rc::Rc;
 
 use anyhow::Result;
 
@@ -15,12 +13,12 @@ pub struct CachePairReader {
     is_post_ensmallening: bool,
     toc_path: PathBuf,
     cache_path: PathBuf,
-    toc: Rc<RefCell<Toc>>,
+    toc: Toc,
 }
 
 impl CachePair for CachePairReader {
     fn new(toc_path: PathBuf, cache_path: PathBuf, is_post_ensmallening: bool) -> Self {
-        let toc = Rc::new(RefCell::new(Toc::new(toc_path.clone())));
+        let toc = Toc::new(toc_path.clone());
         Self {
             is_post_ensmallening,
             toc_path,
@@ -41,30 +39,30 @@ impl CachePair for CachePairReader {
         self.cache_path.clone()
     }
 
-    fn read_toc(&self) -> Result<()> {
-        self.toc.borrow_mut().read_toc()
+    fn read_toc(&mut self) -> Result<()> {
+        self.toc.read_toc()
     }
 
-    fn unread_toc(&self) {
-        self.toc.borrow_mut().unread_toc();
+    fn unread_toc(&mut self) {
+        self.toc.unread_toc()
     }
 }
 
 impl CachePairReader {
     pub fn get_directory_node<T: Into<PathBuf>>(&self, path: T) -> Option<Node> {
-        self.toc.borrow().get_directory_node(path.into())
+        self.toc.get_directory_node(path.into())
     }
 
     pub fn get_file_node<T: Into<PathBuf>>(&self, path: T) -> Option<Node> {
-        self.toc.borrow().get_file_node(path.into())
+        self.toc.get_file_node(path.into())
     }
 
-    pub fn directories(&self) -> Vec<Node> {
-        self.toc.borrow().directories()
+    pub fn directories(&self) -> &Vec<Node> {
+        self.toc.directories()
     }
 
-    pub fn files(&self) -> Vec<Node> {
-        self.toc.borrow().files()
+    pub fn files(&self) -> &Vec<Node> {
+        self.toc.files()
     }
 
     pub fn get_data(&self, file_node: Node) -> Result<Vec<u8>> {

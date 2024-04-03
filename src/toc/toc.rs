@@ -12,7 +12,6 @@ pub struct Toc {
     toc_path: PathBuf,
     directories: Vec<Node>,
     files: Vec<Node>,
-    root: Option<Node>,
 }
 
 impl Toc {
@@ -21,24 +20,23 @@ impl Toc {
             toc_path,
             directories: Vec::new(),
             files: Vec::new(),
-            root: None,
         }
     }
 
-    pub fn directories(&self) -> Vec<Node> {
-        self.directories.clone()
+    pub fn directories(&self) -> &Vec<Node> {
+        &self.directories
     }
 
-    pub fn files(&self) -> Vec<Node> {
-        self.files.clone()
+    pub fn files(&self) -> &Vec<Node> {
+        &self.files
     }
 
     pub fn root(&self) -> Option<Node> {
-        self.root.clone()
+        self.directories.get(0).cloned()
     }
 
     pub fn is_loaded(&self) -> bool {
-        self.root.is_some()
+        !self.directories.is_empty()
     }
 
     pub fn read_toc(&mut self) -> Result<()> {
@@ -62,8 +60,7 @@ impl Toc {
         let mut file_count = 0;
         let mut dir_count = 1; // Hardcoded root directory
 
-        let root = Node::root();
-        self.directories.insert(0, root.clone());
+        self.directories.insert(0, Node::root());
 
         let mut buffer = vec![0u8; TOC_ENTRY_SIZE * entry_count];
         toc_reader.read_exact(&mut buffer).unwrap();
@@ -83,12 +80,12 @@ impl Toc {
 
                 // SAFETY: The entry name is guaranteed to be valid UTF-8
                 let entry_name = unsafe { std::str::from_utf8_unchecked(&entry.name[..null_index]) };
-                entry_name.to_string()
+                entry_name
             };
 
             let parent_node = self
                 .directories
-                .get(entry.parent_dir_index as usize)
+                .get_mut(entry.parent_dir_index as usize)
                 .unwrap();
 
             // If the cache offset is -1, then the entry is a directory
@@ -119,15 +116,12 @@ impl Toc {
         self.directories.shrink_to_fit();
         self.files.shrink_to_fit();
 
-        self.root = Some(root);
-
         Ok(()) // TOC read successfully
     }
 
     pub fn unread_toc(&mut self) {
         self.directories.clear();
         self.files.clear();
-        self.root = None;
     }
 
     fn get_node(&self, path: PathBuf) -> Option<Node> {
@@ -140,7 +134,7 @@ impl Toc {
         }
 
         let mut components = path.components();
-        let mut current_node = self.root.clone().unwrap();
+        let mut current_node = self.root().unwrap().clone();
 
         // Skip root
         components.next();
