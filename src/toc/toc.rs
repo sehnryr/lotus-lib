@@ -8,7 +8,7 @@ use zerocopy::FromBytes;
 use crate::toc::node::{DirectoryNode, Node, NodeKind};
 use crate::toc::raw_toc_entry::{RawTocEntry, TOC_ENTRY_SIZE};
 
-pub struct Toc {
+pub(crate) struct Toc {
     toc_path: PathBuf,
     directories: Vec<Node>,
     files: Vec<Node>,

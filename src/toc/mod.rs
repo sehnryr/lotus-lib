@@ -3,4 +3,4 @@ mod raw_toc_entry;
 mod toc;
 
 pub use node::{DirectoryNode, FileNode, Node, NodeKind};
-pub use toc::Toc;
+pub(crate) use toc::Toc;
