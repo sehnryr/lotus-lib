@@ -17,6 +17,18 @@ pub struct Node {
     node: Link<NodeData>,
 }
 
+pub trait FileNode {
+    fn cache_offset(&self) -> i64;
+    fn timestamp(&self) -> i64;
+    fn comp_len(&self) -> i32;
+    fn len(&self) -> i32;
+}
+
+pub trait DirectoryNode {
+    fn children(&self) -> Vec<Node>;
+    fn get_child(&self, name: &str) -> Option<Node>;
+}
+
 impl Node {
     fn new(
         name: &str,
@@ -103,18 +115,6 @@ impl Node {
             .parent()
             .map(|parent| Node { node: parent })
     }
-}
-
-pub trait FileNode {
-    fn cache_offset(&self) -> i64;
-    fn timestamp(&self) -> i64;
-    fn comp_len(&self) -> i32;
-    fn len(&self) -> i32;
-}
-
-pub trait DirectoryNode {
-    fn children(&self) -> Vec<Node>;
-    fn get_child(&self, name: &str) -> Option<Node>;
 }
 
 impl FileNode for Node {
