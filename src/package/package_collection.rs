@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use crate::cache_pair::CachePair;
 use crate::package::package::Package;
 
+/// A collection of packages.
 pub struct PackageCollection<T: CachePair> {
     directory: PathBuf,
     is_post_ensmallening: bool,
@@ -51,6 +52,10 @@ impl<T: CachePair> PackageCollection<T> {
         })
     }
 
+    /// Returns whether the package is post-ensmallening.
+    ///
+    /// This is used to determine how to decompress the data from before "The Great Ensmallening"
+    /// update of Warframe.
     pub fn is_post_ensmallening(&self) -> bool {
         self.is_post_ensmallening
     }
@@ -78,10 +83,12 @@ impl<T: CachePair> PackageCollection<T> {
         Some(self.packages.remove(index))
     }
 
+    /// Returns the directory of the package collection.
     pub fn directory(&self) -> &PathBuf {
         &self.directory
     }
 
+    /// Returns the packages within the package collection.
     pub fn packages(&self) -> &Vec<Package<T>> {
         &self.packages
     }

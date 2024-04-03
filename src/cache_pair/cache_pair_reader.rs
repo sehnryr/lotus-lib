@@ -9,6 +9,7 @@ use crate::compression::post_ensmallening::decompress_post_ensmallening;
 use crate::compression::pre_ensmallening::decompress_pre_ensmallening;
 use crate::toc::{FileNode, Node, Toc};
 
+/// A cache pair reader.
 pub struct CachePairReader {
     is_post_ensmallening: bool,
     toc_path: PathBuf,
@@ -49,22 +50,27 @@ impl CachePair for CachePairReader {
 }
 
 impl CachePairReader {
+    /// Get the directory node for the given path.
     pub fn get_directory_node<T: Into<PathBuf>>(&self, path: T) -> Option<Node> {
         self.toc.get_directory_node(path.into())
     }
 
+    /// Get the file node for the given path.
     pub fn get_file_node<T: Into<PathBuf>>(&self, path: T) -> Option<Node> {
         self.toc.get_file_node(path.into())
     }
 
+    /// Get the directory nodes
     pub fn directories(&self) -> &Vec<Node> {
         self.toc.directories()
     }
 
+    /// Get the file nodes
     pub fn files(&self) -> &Vec<Node> {
         self.toc.files()
     }
 
+    /// Read the data without decompressing it for the given file node.
     pub fn get_data(&self, file_node: Node) -> Result<Vec<u8>> {
         let mut cache_reader = File::open(self.cache_path.clone()).unwrap();
         cache_reader
@@ -76,6 +82,9 @@ impl CachePairReader {
         Ok(data)
     }
 
+    /// Read and decompress the data for the given file node.
+    ///
+    /// If the file is not compressed, the data is read without decompressing it.
     pub fn decompress_data(&self, file_node: Node) -> Result<Vec<u8>> {
         if file_node.comp_len() == file_node.len() {
             return self.get_data(file_node);

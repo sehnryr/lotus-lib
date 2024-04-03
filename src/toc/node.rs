@@ -6,26 +6,46 @@ use derivative::Derivative;
 type Link<T> = Arc<RwLock<T>>;
 type WeakLink<T> = Weak<RwLock<T>>;
 
+/// The kind of a node.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum NodeKind {
+    /// A directory node.
     Directory,
+
+    /// A file node.
     File,
 }
 
+/// A node in a tree.
+///
+/// Nodes can be either directories or files.
+/// The cost of cloning a node is low, as it uses [`Arc`] internally.
 #[derive(Clone, Debug)]
 pub struct Node {
     node: Link<NodeData>,
 }
 
+/// Trait for file nodes.
 pub trait FileNode {
+    /// Returns the cache offset of the file.
     fn cache_offset(&self) -> i64;
+
+    /// Returns the timestamp of the file.
     fn timestamp(&self) -> i64;
+
+    /// Returns the compressed length of the file.
     fn comp_len(&self) -> i32;
+
+    /// Returns the decompressed length of the file.
     fn len(&self) -> i32;
 }
 
+/// Trait for directory nodes.
 pub trait DirectoryNode {
+    /// Returns the children of the directory.
     fn children(&self) -> Vec<Node>;
+
+    /// Returns the child with the given name.
     fn get_child(&self, name: &str) -> Option<Node>;
 }
 
@@ -80,10 +100,12 @@ impl Node {
         child.node.write().unwrap().set_parent(&self.node);
     }
 
+    /// Returns the name of the node.
     pub fn name(&self) -> String {
         self.node.read().unwrap().name().to_string()
     }
 
+    /// Returns the path of the node.
     pub fn path(&self) -> PathBuf {
         let mut path_components = Vec::new();
         let mut ancestor = self.node.read().unwrap().parent();
@@ -104,10 +126,12 @@ impl Node {
         path
     }
 
+    /// Returns the kind of the node.
     pub fn kind(&self) -> NodeKind {
         self.node.read().unwrap().kind()
     }
 
+    /// Returns the parent of the node.
     pub fn parent(&self) -> Option<Node> {
         self.node
             .read()

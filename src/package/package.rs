@@ -4,6 +4,7 @@ use crate::cache_pair::CachePair;
 
 use super::package_type::PackageType;
 
+/// A package containing three cache pairs.
 pub struct Package<T: CachePair> {
     directory: PathBuf,
     name: String,
@@ -64,14 +65,20 @@ impl<T: CachePair> Package<T> {
         Some(T::new(toc_path, cache_path, is_post_ensmallening))
     }
 
+    /// Returns the directory of the package.
     pub fn directory(&self) -> &PathBuf {
         &self.directory
     }
 
+    /// Returns the name of the package.
     pub fn name(&self) -> &String {
         &self.name
     }
 
+    /// Returns whether the package is post-ensmallening.
+    ///
+    /// This is used to determine how to decompress the data from before "The Great Ensmallening"
+    /// update of Warframe.
     pub fn is_post_ensmallening(&self) -> bool {
         self.is_post_ensmallening
     }

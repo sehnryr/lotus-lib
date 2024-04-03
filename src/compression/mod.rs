@@ -1,3 +1,10 @@
+/*!
+
+This module provides functions to decompress data compressed with the Oodle or LZ compression
+algorithms.
+
+*/
+
 mod lz;
 mod oodle;
 pub(crate) mod post_ensmallening;
