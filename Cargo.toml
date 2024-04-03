@@ -12,7 +12,8 @@ keywords = ["warframe", "cache", "decompression"]
 categories = ["encoding", "filesystem", "parsing"]
 exclude = [".*"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lints.rust]
+unsafe_code = "forbid"
 
 [features]
 post_ensmallening = []
