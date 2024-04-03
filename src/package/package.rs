@@ -85,4 +85,19 @@ impl<T: CachePair> Package<T> {
             Err(_) => None,
         }
     }
+
+    /// Returns a mutable reference to the package of the specified type.
+    ///
+    /// Returns `None` if the package does not exist.
+    pub fn get_mut<I>(&mut self, package_type: I) -> Option<&mut T>
+    where
+        I: TryInto<PackageType>,
+    {
+        match package_type.try_into() {
+            Ok(PackageType::H) => self.h_package.as_mut(),
+            Ok(PackageType::F) => self.f_package.as_mut(),
+            Ok(PackageType::B) => self.b_package.as_mut(),
+            Err(_) => None,
+        }
+    }
 }
