@@ -1,67 +1,65 @@
+use std::path::PathBuf;
+
 use crate::cache_pair::CachePair;
 
-pub enum PackageTrioType {
-    H,
-    F,
-    B,
-}
+use super::package_type::PackageType;
 
 pub struct Package<T: CachePair> {
-    directory: std::path::PathBuf,
+    directory: PathBuf,
     name: String,
     is_post_ensmallening: bool,
-    packages: (Option<T>, Option<T>, Option<T>),
+
+    h_package: Option<T>,
+    f_package: Option<T>,
+    b_package: Option<T>,
 }
 
 impl<T: CachePair> Package<T> {
-    pub fn new(directory: std::path::PathBuf, name: String, is_post_ensmallening: bool) -> Self {
-        let mut package = Self {
+    pub(super) fn new(directory: PathBuf, name: String, is_post_ensmallening: bool) -> Self {
+        let h_package = Package::<T>::get_package(&directory, &name, is_post_ensmallening, 'H');
+        let f_package = Package::<T>::get_package(&directory, &name, is_post_ensmallening, 'F');
+        let b_package = Package::<T>::get_package(&directory, &name, is_post_ensmallening, 'B');
+        Self {
             directory,
             name,
             is_post_ensmallening,
-            packages: (None, None, None),
-        };
-        package.load_package_pairs();
-        package
-    }
-
-    fn load_package_pairs(&mut self) {
-        for package_type in [PackageTrioType::H, PackageTrioType::F, PackageTrioType::B] {
-            let (toc_path, cache_path) = self.get_pair_path(&package_type);
-            if !toc_path.exists() && !cache_path.exists() {
-                continue;
-            }
-
-            let package_pair = T::new(toc_path, cache_path, self.is_post_ensmallening);
-
-            match package_type {
-                PackageTrioType::H => self.packages.0 = Some(package_pair),
-                PackageTrioType::F => self.packages.1 = Some(package_pair),
-                PackageTrioType::B => self.packages.2 = Some(package_pair),
-            }
+            h_package,
+            f_package,
+            b_package,
         }
     }
 
-    fn get_pair_path(
-        &self,
-        package_type: &PackageTrioType,
-    ) -> (std::path::PathBuf, std::path::PathBuf) {
-        let mut toc_path = self.directory.clone();
-        let mut cache_path = self.directory.clone();
+    /// Creates a new package from the specified directory, name, and type.
+    ///
+    /// Returns `None` if the package does not exist.
+    fn get_package<P, I>(
+        directory: P,
+        name: &str,
+        is_post_ensmallening: bool,
+        trio_type: I,
+    ) -> Option<T>
+    where
+        P: Into<PathBuf>,
+        I: TryInto<PackageType>,
+    {
+        let directory = directory.into();
 
-        let trio_char = match package_type {
-            PackageTrioType::H => "H",
-            PackageTrioType::F => "F",
-            PackageTrioType::B => "B",
-        };
+        let mut toc_path = directory.clone();
+        let mut cache_path = directory.clone();
 
-        toc_path.push(format!("{}.{}.toc", trio_char, self.name));
-        cache_path.push(format!("{}.{}.cache", trio_char, self.name));
+        let trio_type = trio_type.try_into().ok()?;
+        let trio_type = char::from(trio_type);
 
-        (toc_path, cache_path)
+        toc_path.push(format!("{}.{}.toc", trio_type, name));
+        cache_path.push(format!("{}.{}.cache", trio_type, name));
+
+        if !toc_path.exists() && !cache_path.exists() {
+            return None;
+        }
+        Some(T::new(toc_path, cache_path, is_post_ensmallening))
     }
 
-    pub fn directory(&self) -> &std::path::PathBuf {
+    pub fn directory(&self) -> &PathBuf {
         &self.directory
     }
 
@@ -73,11 +71,18 @@ impl<T: CachePair> Package<T> {
         self.is_post_ensmallening
     }
 
-    pub fn get(&self, package_type: &PackageTrioType) -> Option<&T> {
-        match package_type {
-            PackageTrioType::H => self.packages.0.as_ref(),
-            PackageTrioType::F => self.packages.1.as_ref(),
-            PackageTrioType::B => self.packages.2.as_ref(),
+    /// Returns a reference to the package of the specified type.
+    ///
+    /// Returns `None` if the package does not exist.
+    pub fn get<I>(&self, package_type: I) -> Option<&T>
+    where
+        I: TryInto<PackageType>,
+    {
+        match package_type.try_into() {
+            Ok(PackageType::H) => self.h_package.as_ref(),
+            Ok(PackageType::F) => self.f_package.as_ref(),
+            Ok(PackageType::B) => self.b_package.as_ref(),
+            Err(_) => None,
         }
     }
 }
