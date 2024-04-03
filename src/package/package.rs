@@ -15,7 +15,12 @@ pub struct Package<T: CachePair> {
 }
 
 impl<T: CachePair> Package<T> {
-    pub(super) fn new(directory: PathBuf, name: String, is_post_ensmallening: bool) -> Self {
+    pub(super) fn new<P>(directory: P, name: String, is_post_ensmallening: bool) -> Self 
+    where
+        P: Into<PathBuf>,
+     {
+        let directory = directory.into();
+
         let h_package = Package::<T>::get_package(&directory, &name, is_post_ensmallening, 'H');
         let f_package = Package::<T>::get_package(&directory, &name, is_post_ensmallening, 'F');
         let b_package = Package::<T>::get_package(&directory, &name, is_post_ensmallening, 'B');
