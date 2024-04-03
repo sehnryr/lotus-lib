@@ -16,6 +16,6 @@ anyhow = "1.0.79"
 bytebuffer = "2.2.0"
 crc = "3.0.1"
 log = "0.4.20"
-lotus-lib = { path = "../", version = "3.0.1" }
+lotus-lib = { path = "../", version = "4.0.0" }
 rand = "0.8.5"
 zerocopy = "0.7.32"
