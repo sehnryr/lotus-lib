@@ -79,7 +79,7 @@ impl<T: CachePair> Package<T> {
     /// Returns a reference to the package of the specified type.
     ///
     /// Returns `None` if the package does not exist.
-    pub fn get<I>(&self, package_type: I) -> Option<&T>
+    pub fn borrow<I>(&self, package_type: I) -> Option<&T>
     where
         I: TryInto<PackageType>,
     {
@@ -94,7 +94,7 @@ impl<T: CachePair> Package<T> {
     /// Returns a mutable reference to the package of the specified type.
     ///
     /// Returns `None` if the package does not exist.
-    pub fn get_mut<I>(&mut self, package_type: I) -> Option<&mut T>
+    pub fn borrow_mut<I>(&mut self, package_type: I) -> Option<&mut T>
     where
         I: TryInto<PackageType>,
     {

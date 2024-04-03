@@ -55,9 +55,17 @@ impl<T: CachePair> PackageCollection<T> {
         self.is_post_ensmallening
     }
 
-    pub fn get_package(&self, package_name: &str) -> Option<&Package<T>> {
+    /// Returns a reference to the package with the specified name if found.
+    pub fn borrow(&self, package_name: &str) -> Option<&Package<T>> {
         self.packages
             .iter()
+            .find(|package| package.name() == package_name)
+    }
+
+    /// Returns a mutable reference to the package with the specified name if found.
+    pub fn borrow_mut(&mut self, package_name: &str) -> Option<&mut Package<T>> {
+        self.packages
+            .iter_mut()
             .find(|package| package.name() == package_name)
     }
 
