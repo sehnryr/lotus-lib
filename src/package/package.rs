@@ -21,9 +21,9 @@ impl<T: CachePair> Package<T> {
     {
         let directory = directory.into();
 
-        let h_package = Package::<T>::get_package(&directory, &name, is_post_ensmallening, 'H');
-        let f_package = Package::<T>::get_package(&directory, &name, is_post_ensmallening, 'F');
-        let b_package = Package::<T>::get_package(&directory, &name, is_post_ensmallening, 'B');
+        let h_package = Package::<T>::new_package(&directory, &name, is_post_ensmallening, 'H');
+        let f_package = Package::<T>::new_package(&directory, &name, is_post_ensmallening, 'F');
+        let b_package = Package::<T>::new_package(&directory, &name, is_post_ensmallening, 'B');
         Self {
             directory,
             name,
@@ -37,7 +37,7 @@ impl<T: CachePair> Package<T> {
     /// Creates a new package from the specified directory, name, and type.
     ///
     /// Returns `None` if the package does not exist.
-    fn get_package<P, I>(
+    fn new_package<P, I>(
         directory: P,
         name: &str,
         is_post_ensmallening: bool,
