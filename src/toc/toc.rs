@@ -6,7 +6,7 @@ use anyhow::Result;
 use zerocopy::FromBytes;
 
 use crate::toc::node::{DirectoryNode, Node, NodeKind};
-use crate::toc::raw_toc_entry::{RawTocEntry, TOC_ENTRY_SIZE};
+use crate::toc::toc_entry::{TocEntry, TOC_ENTRY_SIZE};
 
 pub(crate) struct Toc {
     toc_path: PathBuf,
@@ -65,7 +65,7 @@ impl Toc {
         let mut buffer = vec![0u8; TOC_ENTRY_SIZE * entry_count];
         toc_reader.read_exact(&mut buffer).unwrap();
 
-        let entries = RawTocEntry::slice_from(&buffer).unwrap();
+        let entries = TocEntry::slice_from(&buffer).unwrap();
         for entry in entries {
             // Entry timestamp of 0 means the entry has been replaced with a
             // newer version with the same name and path with a valid timestamp
