@@ -141,6 +141,12 @@ impl Node {
     }
 }
 
+impl PartialEq for Node {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.node, &other.node)
+    }
+}
+
 impl FileNode for Node {
     fn cache_offset(&self) -> i64 {
         self.node.read().unwrap().cache_offset().unwrap().clone()
