@@ -1,0 +1,21 @@
+[package]
+name = "lotus-utils-audio"
+version = "0.1.0"
+edition = "2021"
+authors = ["Youn Mélois <youn@melois.dev>"]
+repository = "https://github.com/sehnryr/lotus-lib"
+homepage = "https://github.com/sehnryr/lotus-lib"
+description = "Utilities for lotus-lib audio handling."
+license = "MIT"
+keywords = ["warframe", "cache", "decompression", "utils", "audio"]
+categories = ["encoding", "filesystem", "parsing"]
+exclude = [".*"]
+
+[dependencies]
+anyhow = "1.0.79"
+bytebuffer = "2.2.0"
+crc = "3.0.1"
+log = "0.4.20"
+lotus-lib = { path = "../", version = "3.0.1" }
+rand = "0.8.5"
+zerocopy = "0.7.32"
