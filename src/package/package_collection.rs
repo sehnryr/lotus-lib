@@ -1,14 +1,16 @@
+use std::path::PathBuf;
+
 use crate::cache_pair::CachePair;
 use crate::package::package::Package;
 
 pub struct PackageCollection<T: CachePair> {
-    directory: std::path::PathBuf,
+    directory: PathBuf,
     is_post_ensmallening: bool,
     packages: Vec<Package<T>>,
 }
 
 impl<T: CachePair> PackageCollection<T> {
-    pub fn new(directory: std::path::PathBuf, is_post_ensmallening: bool) -> Self {
+    pub fn new(directory: PathBuf, is_post_ensmallening: bool) -> Self {
         let mut package_collection = Self {
             directory,
             is_post_ensmallening,
@@ -57,7 +59,7 @@ impl<T: CachePair> PackageCollection<T> {
             .find(|package| package.name() == package_name)
     }
 
-    pub fn directory(&self) -> &std::path::PathBuf {
+    pub fn directory(&self) -> &PathBuf {
         &self.directory
     }
 
