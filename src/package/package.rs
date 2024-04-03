@@ -105,4 +105,17 @@ impl<T: CachePair> Package<T> {
             Err(_) => None,
         }
     }
+
+    /// Returns the package of the specified type.
+    pub fn take<I>(&mut self, package_type: I) -> Option<T>
+    where
+        I: TryInto<PackageType>,
+    {
+        match package_type.try_into() {
+            Ok(PackageType::H) => self.h_package.take(),
+            Ok(PackageType::F) => self.f_package.take(),
+            Ok(PackageType::B) => self.b_package.take(),
+            Err(_) => None,
+        }
+    }
 }

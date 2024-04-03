@@ -69,6 +69,15 @@ impl<T: CachePair> PackageCollection<T> {
             .find(|package| package.name() == package_name)
     }
 
+    /// Returns the package with the specified name if found.
+    pub fn take(&mut self, package_name: &str) -> Option<Package<T>> {
+        let index = self
+            .packages
+            .iter()
+            .position(|package| package.name() == package_name)?;
+        Some(self.packages.remove(index))
+    }
+
     pub fn directory(&self) -> &PathBuf {
         &self.directory
     }
