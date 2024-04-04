@@ -7,9 +7,18 @@ use lotus_lib::toc::{FileNode, Node};
 
 use crate::compression_format::CompressionFormat;
 use crate::header::AudioHeader;
+use crate::kind::AudioKind;
 use crate::ogg::{get_segment_table, OggPage};
+use crate::raw_header::RawAudioHeader;
 
 pub trait Audio {
+    /// Checks if the given node is an audio file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the H cache is not found.
+    fn is_audio(&self, node: &Node) -> Result<bool>;
+
     /// Decompresses the audio file data and get the name for the given node.
     ///
     /// # Arguments
@@ -23,6 +32,27 @@ pub trait Audio {
 }
 
 impl Audio for Package<CachePairReader> {
+    fn is_audio(&self, node: &Node) -> Result<bool> {
+        if !node.name().ends_with(".wav") {
+            return Ok(false);
+        }
+
+        let h_cache = self
+            .borrow(PackageType::H)
+            .ok_or(Error::msg("No header file found"))?;
+
+        let header_file_data = h_cache.decompress_data(node.clone())?;
+        let header = match RawAudioHeader::try_from(header_file_data.as_slice()) {
+            Ok(header) => header,
+            Err(_) => return Ok(false),
+        };
+
+        match AudioKind::try_from(header.file_type) {
+            Ok(_) => Ok(true),
+            Err(_) => Ok(false),
+        }
+    }
+
     fn decompress_audio(&self, node: &Node) -> Result<(Vec<u8>, String)> {
         let h_cache = self.borrow(PackageType::H);
         let f_cache = self.borrow(PackageType::F);

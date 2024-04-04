@@ -11,6 +11,9 @@ keywords = ["warframe", "cache", "decompression", "utils", "audio"]
 categories = ["encoding", "filesystem", "parsing"]
 exclude = [".*"]
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow = "1.0.79"
 bytebuffer = "2.2.0"
