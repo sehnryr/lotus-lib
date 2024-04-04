@@ -10,26 +10,48 @@ use lotus_lib::package::{Package, PackageType};
 use lotus_lib::toc::{FileNode, Node};
 
 use crate::header::TextureHeader;
+use crate::raw_header::RawTextureHeader;
+use crate::kind::TextureKind;
 
 pub trait Texture {
-    /// Get the texture file name for the given node.
-    fn get_texture_file_name(&self, node: &Node) -> String;
+    /// Check if the given node is a texture.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the H cache is not found.
+    fn is_texture(&self, node: &Node) -> Result<bool>;
 
     /// Decompresses the texture file data for the given node.
-    fn decompress_texture(&self, node: &Node) -> Result<Vec<u8>>;
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing the decompressed audio file data and the name of the audio file.
+    fn decompress_texture(&self, node: &Node) -> Result<(Vec<u8>, String)>;
 }
 
 impl Texture for Package<CachePairReader> {
-    fn get_texture_file_name(&self, node: &Node) -> String {
-        let mut file_name = node.name();
-        if file_name.ends_with(".png") {
-            file_name.truncate(file_name.len() - 4);
+    fn is_texture(&self, node: &Node) -> Result<bool> {
+        if !node.name().ends_with(".png") {
+            return Ok(false);
         }
-        file_name.push_str(".dds");
-        file_name
+
+        let h_cache = self
+            .borrow(PackageType::H)
+            .ok_or(Error::msg("No header file found"))?;
+
+        let header_file_data = h_cache.decompress_data(node.clone())?;
+        let header = match RawTextureHeader::try_from(header_file_data.as_slice()) {
+            Ok(header) => header,
+            Err(_) => return Ok(false),
+        };
+
+        match TextureKind::try_from(header.file_type) {
+            Ok(_) => Ok(true),
+            Err(_) => Ok(false),
+        }
     }
 
-    fn decompress_texture(&self, node: &Node) -> Result<Vec<u8>> {
+    fn decompress_texture(&self, node: &Node) -> Result<(Vec<u8>, String)> {
         let h_cache = self.borrow(PackageType::H);
         let f_cache = self.borrow(PackageType::F);
         let b_cache = self.borrow(PackageType::B);
@@ -110,7 +132,7 @@ impl Texture for Package<CachePairReader> {
             buffer.write_bytes(&file_data[file_data.len() - header.size()..]);
         }
 
-        Ok(buffer.into_vec())
+        Ok((buffer.into_vec(), get_texture_file_name(node)))
     }
 }
 
@@ -149,4 +171,13 @@ fn get_real_cache_image_offset(
     } else {
         return Ok(cache_offset_top);
     }
+}
+
+fn get_texture_file_name(node: &Node) -> String {
+    let mut file_name = node.name();
+    if file_name.ends_with(".png") {
+        file_name.truncate(file_name.len() - 4);
+    }
+    file_name.push_str(".dds");
+    file_name
 }
