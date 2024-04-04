@@ -1,3 +1,10 @@
+[workspace]
+members = ["lotus-utils-audio", "lotus-utils-texture"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
 [package]
 name = "lotus-lib"
 version = "4.0.0"
