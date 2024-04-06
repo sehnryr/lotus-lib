@@ -1,6 +1,5 @@
 use std::fmt;
 use std::path::PathBuf;
-use std::sync::Arc;
 
 use arctree::Node as ArcNode;
 
@@ -122,13 +121,13 @@ impl Node {
         let mut ancestor = self.node.parent();
 
         while let Some(current_ancestor) = ancestor {
-            path_components.push(current_ancestor.read().name());
+            path_components.push(current_ancestor.read().name().clone());
             ancestor = current_ancestor.parent();
         }
 
         let mut path = PathBuf::from("/");
-        for component in path_components.into_iter().rev() {
-            path.push(component.to_string());
+        for component in path_components.iter().rev() {
+            path.push(component);
         }
 
         path.push(self.name());
@@ -187,7 +186,7 @@ impl DirectoryNode for Node {
 
 #[derive(Debug)]
 struct NodeData {
-    name: Arc<str>,
+    name: String,
     kind: NodeKind,
     cache_offset: Option<i64>,
     timestamp: Option<i64>,
@@ -205,7 +204,7 @@ impl NodeData {
         len: Option<i32>,
     ) -> Self {
         Self {
-            name: Arc::from(name),
+            name: String::from(name),
             kind,
             cache_offset,
             timestamp,
@@ -214,8 +213,8 @@ impl NodeData {
         }
     }
 
-    fn name(&self) -> Arc<str> {
-        self.name.clone()
+    fn name(&self) -> &String {
+        &self.name
     }
 
     fn kind(&self) -> NodeKind {
