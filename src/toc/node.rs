@@ -117,17 +117,16 @@ impl Node {
 
     /// Returns the path of the node.
     pub fn path(&self) -> PathBuf {
-        let mut path_components = Vec::new();
+        let mut ancestors = Vec::new();
         let mut ancestor = self.node.parent();
-
         while let Some(current_ancestor) = ancestor {
-            path_components.push(current_ancestor.read().name().clone());
+            ancestors.push(current_ancestor.clone());
             ancestor = current_ancestor.parent();
         }
 
         let mut path = PathBuf::from("/");
-        for component in path_components.iter().rev() {
-            path.push(component);
+        for ancestor in ancestors.iter().rev() {
+            path.push(ancestor.read().name());
         }
 
         path.push(self.name());
