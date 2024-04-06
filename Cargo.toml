@@ -7,7 +7,7 @@ missing_docs = "warn"
 
 [package]
 name = "lotus-lib"
-version = "4.0.0"
+version = "4.0.1"
 edition = "2021"
 authors = ["Youn Mélois <youn@melois.dev>"]
 repository = "https://github.com/sehnryr/lotus-lib"

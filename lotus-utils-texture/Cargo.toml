@@ -20,5 +20,5 @@ bytebuffer = "2.2.0"
 ddsfile = "0.5.2"
 derivative = "2.2.0"
 log = "0.4.20"
-lotus-lib = { path = "../", version = "4.0.0", features = ["internal"] }
+lotus-lib = { path = "../", version = "4.0.1", features = ["internal"] }
 zerocopy = { version = "0.7.32", features = ["derive"] }
