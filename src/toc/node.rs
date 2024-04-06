@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -17,9 +18,23 @@ pub enum NodeKind {
 ///
 /// Nodes can be either directories or files.
 /// The cost of cloning a node is low, as it uses [`Arc`] internally.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Node {
     node: ArcNode<NodeData>,
+}
+
+impl fmt::Debug for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let node = self.node.read();
+        f.debug_struct("Node")
+            .field("name", &node.name)
+            .field("kind", &node.kind)
+            .field("cache_offset", &node.cache_offset)
+            .field("timestamp", &node.timestamp)
+            .field("comp_len", &node.comp_len)
+            .field("len", &node.len)
+            .finish()
+    }
 }
 
 /// Trait for file nodes.
