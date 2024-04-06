@@ -30,6 +30,7 @@ internal = ["post_ensmallening", "pre_ensmallening"]
 
 [dependencies]
 anyhow = "1.0.69"
+arctree = "0.1.0"
 derivative = "2.2.0"
 log = "0.4.17"
 lz4_flex = "0.9.5"
