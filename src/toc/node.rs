@@ -1,10 +1,7 @@
 use std::path::PathBuf;
-use std::sync::{Arc, RwLock, Weak};
+use std::sync::Arc;
 
-use derivative::Derivative;
-
-type Link<T> = Arc<RwLock<T>>;
-type WeakLink<T> = Weak<RwLock<T>>;
+use arctree::Node as ArcNode;
 
 /// The kind of a node.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -20,9 +17,9 @@ pub enum NodeKind {
 ///
 /// Nodes can be either directories or files.
 /// The cost of cloning a node is low, as it uses [`Arc`] internally.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Node {
-    node: Link<NodeData>,
+    node: ArcNode<NodeData>,
 }
 
 /// Trait for file nodes.
@@ -59,14 +56,14 @@ impl Node {
         len: Option<i32>,
     ) -> Self {
         Self {
-            node: Arc::new(RwLock::new(NodeData::new(
+            node: ArcNode::new(NodeData::new(
                 name,
                 kind,
                 cache_offset,
                 timestamp,
                 comp_len,
                 len,
-            ))),
+            )),
         }
     }
 
@@ -96,23 +93,21 @@ impl Node {
     }
 
     pub(super) fn append(&mut self, child: Node) {
-        self.node.write().unwrap().append(child.node.clone());
-        child.node.write().unwrap().set_parent(&self.node);
+        self.node.append(child.node.clone());
     }
 
     /// Returns the name of the node.
     pub fn name(&self) -> String {
-        self.node.read().unwrap().name().to_string()
+        self.node.read().name().to_string()
     }
 
     /// Returns the path of the node.
     pub fn path(&self) -> PathBuf {
         let mut path_components = Vec::new();
-        let mut ancestor = self.node.read().unwrap().parent();
+        let mut ancestor = self.node.parent();
 
         while let Some(current_ancestor) = ancestor {
-            let current_ancestor = current_ancestor.read().unwrap();
-            path_components.push(current_ancestor.name());
+            path_components.push(current_ancestor.read().name());
             ancestor = current_ancestor.parent();
         }
 
@@ -128,50 +123,37 @@ impl Node {
 
     /// Returns the kind of the node.
     pub fn kind(&self) -> NodeKind {
-        self.node.read().unwrap().kind()
+        self.node.read().kind()
     }
 
     /// Returns the parent of the node.
     pub fn parent(&self) -> Option<Node> {
-        self.node
-            .read()
-            .unwrap()
-            .parent()
-            .map(|parent| Node { node: parent })
-    }
-}
-
-impl PartialEq for Node {
-    fn eq(&self, other: &Self) -> bool {
-        Arc::ptr_eq(&self.node, &other.node)
+        self.node.parent().map(|parent| Node { node: parent })
     }
 }
 
 impl FileNode for Node {
     fn cache_offset(&self) -> i64 {
-        self.node.read().unwrap().cache_offset().unwrap().clone()
+        self.node.read().cache_offset().unwrap().clone()
     }
 
     fn timestamp(&self) -> i64 {
-        self.node.read().unwrap().timestamp().unwrap().clone()
+        self.node.read().timestamp().unwrap().clone()
     }
 
     fn comp_len(&self) -> i32 {
-        self.node.read().unwrap().comp_len().unwrap().clone()
+        self.node.read().comp_len().unwrap().clone()
     }
 
     fn len(&self) -> i32 {
-        self.node.read().unwrap().len().unwrap().clone()
+        self.node.read().len().unwrap().clone()
     }
 }
 
 impl DirectoryNode for Node {
     fn children(&self) -> Vec<Node> {
         self.node
-            .read()
-            .unwrap()
             .children()
-            .iter()
             .map(|child| Node {
                 node: child.clone(),
             })
@@ -180,28 +162,16 @@ impl DirectoryNode for Node {
 
     fn get_child(&self, name: &str) -> Option<Node> {
         self.node
-            .read()
-            .unwrap()
             .children()
-            .iter()
-            .find(|child| {
-                let child = child.read().unwrap();
-                *child.name() == *name
-            })
+            .find(|child| *child.read().name() == *name)
             .map(|child| Node {
                 node: child.clone(),
             })
     }
 }
 
-#[derive(Derivative)]
-#[derivative(Debug)]
+#[derive(Debug)]
 struct NodeData {
-    #[derivative(Debug = "ignore")]
-    parent: Option<WeakLink<NodeData>>,
-    #[derivative(Debug = "ignore")]
-    children: Vec<Link<NodeData>>,
-
     name: Arc<str>,
     kind: NodeKind,
     cache_offset: Option<i64>,
@@ -220,8 +190,6 @@ impl NodeData {
         len: Option<i32>,
     ) -> Self {
         Self {
-            parent: None,
-            children: Vec::new(),
             name: Arc::from(name),
             kind,
             cache_offset,
@@ -229,22 +197,6 @@ impl NodeData {
             comp_len,
             len,
         }
-    }
-
-    fn set_parent(&mut self, parent: &Link<NodeData>) {
-        self.parent = Some(Arc::downgrade(parent));
-    }
-
-    fn append(&mut self, child: Link<NodeData>) {
-        self.children.push(child);
-    }
-
-    fn parent(&self) -> Option<Link<NodeData>> {
-        self.parent.as_ref().map(|parent| parent.upgrade().unwrap())
-    }
-
-    fn children(&self) -> &Vec<Link<NodeData>> {
-        &self.children
     }
 
     fn name(&self) -> Arc<str> {
